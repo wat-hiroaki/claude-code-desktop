@@ -181,6 +181,9 @@
     "forNewline": "で改行"
   },
   "workspace": {
+    "allAgents": "すべてのエージェント",
+    "create": "新規ワークスペース",
+    "namePlaceholder": "ワークスペース名...",
     "title": "ワークスペーススキャナー",
     "description": "ディレクトリをスキャンして、Claude Code設定ファイル（CLAUDE.md, .claude/, AGENTS.md）を持つプロジェクトを検出します。",
     "rootPlaceholder": "スキャンするルートディレクトリを選択...",

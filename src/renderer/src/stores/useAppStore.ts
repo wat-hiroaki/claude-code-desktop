@@ -34,6 +34,10 @@ interface AppState {
   setPaneLayout: (layout: 1 | 2 | 4) => void
   setPaneAgent: (paneIndex: number, agentId: string | null) => void
 
+  // Workspace
+  activeWorkspaceId: string | null
+  setActiveWorkspaceId: (id: string | null) => void
+
   // Terminal mode
   usePtyMode: boolean
   setUsePtyMode: (use: boolean) => void
@@ -92,6 +96,10 @@ export const useAppStore = create<AppState>((set) => ({
       ids[paneIndex] = agentId
       return { paneAgentIds: ids }
     }),
+
+  // Workspace
+  activeWorkspaceId: null,
+  setActiveWorkspaceId: (id) => set({ activeWorkspaceId: id }),
 
   // Terminal mode
   usePtyMode: localStorage.getItem('usePtyMode') !== 'false',

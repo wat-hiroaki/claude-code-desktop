@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { getStatusDot, getInitials } from '../lib/status'
+import { WorkspaceSwitcher } from './WorkspaceSwitcher'
 import type { Agent } from '@shared/types'
 
 function formatTime(dateStr: string): string {
@@ -106,6 +107,11 @@ export function AgentList(): JSX.Element {
 
   return (
     <div className="flex flex-col w-64 min-w-[220px] max-w-[320px] border-r border-border bg-card resize-x overflow-hidden">
+      {/* Workspace Switcher */}
+      <div className="p-2 border-b border-border">
+        <WorkspaceSwitcher />
+      </div>
+
       {/* Header */}
       <div className="p-2.5 border-b border-border space-y-2">
         <div className="flex items-center justify-between">

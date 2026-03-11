@@ -181,6 +181,9 @@
     "forNewline": "for newline"
   },
   "workspace": {
+    "allAgents": "All Agents",
+    "create": "New Workspace",
+    "namePlaceholder": "Workspace name...",
     "title": "Workspace Scanner",
     "description": "Scan directories to discover projects with Claude Code configuration files (CLAUDE.md, .claude/, AGENTS.md).",
     "rootPlaceholder": "Select a root directory to scan...",
