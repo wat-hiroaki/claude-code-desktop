@@ -184,6 +184,22 @@
     "createAgent": "このプロジェクトからエージェントを作成",
     "button": "ワークスペーススキャン"
   },
+  "files": {
+    "title": "変更ファイル",
+    "modified": "変更",
+    "added": "追加",
+    "read": "読取"
+  },
+  "inbox": {
+    "title": "受信箱",
+    "approve": "承認",
+    "reject": "拒否",
+    "open": "開く",
+    "restart": "再起動",
+    "allClear": "すべて順調 — エージェント稼働中",
+    "empty": "稼働中のエージェントなし",
+    "needsAttention": "対応が必要"
+  },
   "common": {
     "create": "作成",
     "cancel": "キャンセル",

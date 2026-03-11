@@ -184,6 +184,22 @@
     "createAgent": "Create Agent from this project",
     "button": "Scan Workspaces"
   },
+  "files": {
+    "title": "Changed Files",
+    "modified": "Modified",
+    "added": "Added",
+    "read": "Read"
+  },
+  "inbox": {
+    "title": "Inbox",
+    "approve": "Approve",
+    "reject": "Reject",
+    "open": "Open",
+    "restart": "Restart",
+    "allClear": "All clear — agents are working",
+    "empty": "No agents running",
+    "needsAttention": "Needs attention"
+  },
   "common": {
     "create": "Create",
     "cancel": "Cancel",
