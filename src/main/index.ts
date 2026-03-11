@@ -39,7 +39,12 @@ function createWindow(): void {
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+    try {
+      const url = new URL(details.url)
+      if (url.protocol === 'https:' || url.protocol === 'http:') {
+        shell.openExternal(details.url)
+      }
+    } catch { /* invalid URL, ignore */ }
     return { action: 'deny' }
   })
 
@@ -188,7 +193,15 @@ function setupIPC(): void {
   })
 
   // Task chains
-  ipcMain.handle('chain:create', (_event, chain) => {
+  ipcMain.handle('chain:create', (_event, chain: Record<string, unknown>) => {
+    if (
+      typeof chain?.name !== 'string' || !chain.name.trim() ||
+      typeof chain?.triggerAgentId !== 'string' ||
+      typeof chain?.targetAgentId !== 'string' ||
+      typeof chain?.messageTemplate !== 'string'
+    ) {
+      throw new Error('Invalid chain parameters: name, triggerAgentId, targetAgentId, and messageTemplate are required')
+    }
     return database.createChain(chain)
   })
 
@@ -213,7 +226,8 @@ function setupIPC(): void {
 
   // Dialog
   ipcMain.handle('dialog:selectFolder', async () => {
-    const result = await dialog.showOpenDialog(mainWindow!, {
+    if (!mainWindow) throw new Error('No window available')
+    const result = await dialog.showOpenDialog(mainWindow, {
       properties: ['openDirectory']
     })
     if (result.canceled) return null

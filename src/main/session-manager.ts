@@ -1,4 +1,4 @@
-import { spawn, exec, type ChildProcess } from 'child_process'
+import { spawn, execFile, type ChildProcess } from 'child_process'
 import { existsSync, statSync } from 'fs'
 import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
@@ -160,8 +160,8 @@ export class SessionManager {
     if (!session?.process?.pid) return
 
     if (process.platform === 'win32') {
-      // Windows: use taskkill to kill process tree
-      exec(`taskkill /pid ${session.process.pid} /t /f`, (err) => {
+      // Windows: use taskkill to kill process tree (execFile to avoid shell injection)
+      execFile('taskkill', ['/pid', String(session.process.pid), '/t', '/f'], (err) => {
         if (err) {
           // Fallback: try regular kill
           try { session.process?.kill() } catch { /* already dead */ }
@@ -177,7 +177,7 @@ export class SessionManager {
     if (!session?.process) return
 
     if (process.platform === 'win32' && session.process.pid) {
-      exec(`taskkill /pid ${session.process.pid} /t /f`, () => {
+      execFile('taskkill', ['/pid', String(session.process.pid), '/t', '/f'], () => {
         this.sessions.delete(agentId)
       })
     } else {

@@ -31,8 +31,8 @@ Claude Code Desktop is an Electron-based desktop application that lets you manag
 | UI | React 18 + TypeScript |
 | Styling | Tailwind CSS + shadcn/ui design tokens |
 | State | Zustand |
-| Terminal | node-pty + xterm.js |
-| Database | SQLite (better-sqlite3) |
+| CLI Integration | child_process (stream-json) |
+| Database | JSON file (atomic writes) |
 | Build | electron-vite + electron-builder |
 
 ## Getting Started
@@ -78,8 +78,9 @@ npm run package
 src/
 ├── main/              # Electron main process
 │   ├── index.ts       # App entry, IPC handlers, window management
-│   ├── database.ts    # SQLite database layer
-│   └── session-manager.ts  # pty process management
+│   ├── database.ts    # JSON file database layer
+│   ├── session-manager.ts  # Claude CLI process management
+│   └── chain-orchestrator.ts # Task chain automation
 ├── preload/           # Context bridge (secure IPC)
 │   └── index.ts
 ├── renderer/          # React UI
