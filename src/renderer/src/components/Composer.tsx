@@ -1,7 +1,24 @@
-import { useState, useRef, useCallback, type KeyboardEvent } from 'react'
-import { Send, X, ChevronDown } from 'lucide-react'
+import { useState, useRef, useCallback, useEffect, type KeyboardEvent } from 'react'
+import { Send, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
+
+interface PromptTemplate {
+  label: string
+  value: string
+  category: string
+}
+
+const TEMPLATES: PromptTemplate[] = [
+  { label: '/compact', value: '/compact', category: 'command' },
+  { label: '/clear', value: '/clear', category: 'command' },
+  { label: '/help', value: '/help', category: 'command' },
+  { label: 'Code Review', value: 'Please review the recent changes and provide feedback on code quality, potential bugs, and improvements.', category: 'review' },
+  { label: 'Run Tests', value: 'Run the test suite and report any failures.', category: 'dev' },
+  { label: 'Build & Lint', value: 'Run npm run build && npm run lint and fix any issues found.', category: 'dev' },
+  { label: 'Git Status', value: 'Show me the current git status and recent changes.', category: 'git' },
+  { label: 'Summarize', value: 'Please summarize what you have done so far in this session.', category: 'info' }
+]
 
 interface ComposerProps {
   agentId: string
@@ -12,7 +29,9 @@ interface ComposerProps {
 export function Composer({ agentId, disabled = false, className }: ComposerProps): JSX.Element {
   const { t } = useTranslation()
   const [value, setValue] = useState('')
+  const [showTemplates, setShowTemplates] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const templatesRef = useRef<HTMLDivElement>(null)
 
   const handleSend = useCallback(() => {
     const trimmed = value.trim()
@@ -61,6 +80,24 @@ export function Composer({ agentId, disabled = false, className }: ComposerProps
       textareaRef.current.focus()
     }
   }, [])
+
+  const handleTemplate = useCallback((template: PromptTemplate) => {
+    setValue(template.value)
+    setShowTemplates(false)
+    textareaRef.current?.focus()
+  }, [])
+
+  // Close templates on outside click
+  useEffect(() => {
+    if (!showTemplates) return
+    const handler = (e: MouseEvent): void => {
+      if (templatesRef.current && !templatesRef.current.contains(e.target as Node)) {
+        setShowTemplates(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showTemplates])
 
   return (
     <div className={cn('border-t border-border/50 bg-card/80 backdrop-blur-sm', className)}>
@@ -112,10 +149,37 @@ export function Composer({ agentId, disabled = false, className }: ComposerProps
         <span>Enter {t('composer.toSend', 'to send')}</span>
         <span>·</span>
         <span>Shift+Enter {t('composer.forNewline', 'for newline')}</span>
-        <span className="ml-auto flex items-center gap-1 cursor-pointer hover:text-muted-foreground/80">
-          <ChevronDown size={10} />
-          <span>Templates</span>
-        </span>
+        <div className="relative ml-auto" ref={templatesRef}>
+          <button
+            onClick={() => setShowTemplates((v) => !v)}
+            className="flex items-center gap-1 cursor-pointer hover:text-muted-foreground/80"
+          >
+            {showTemplates ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+            <span>Templates</span>
+          </button>
+          {showTemplates && (
+            <div className="absolute bottom-full right-0 mb-1 w-64 bg-card border border-border rounded-lg shadow-lg overflow-hidden z-50">
+              {TEMPLATES.map((tmpl) => (
+                <button
+                  key={tmpl.label}
+                  onClick={() => handleTemplate(tmpl)}
+                  className="w-full text-left px-3 py-1.5 text-xs hover:bg-muted/50 transition-colors flex items-center gap-2"
+                >
+                  <span className={cn(
+                    'text-[9px] px-1 py-0.5 rounded',
+                    tmpl.category === 'command' ? 'bg-blue-500/20 text-blue-400' :
+                    tmpl.category === 'review' ? 'bg-yellow-500/20 text-yellow-400' :
+                    tmpl.category === 'git' ? 'bg-green-500/20 text-green-400' :
+                    'bg-muted text-muted-foreground'
+                  )}>
+                    {tmpl.category}
+                  </span>
+                  <span className="truncate">{tmpl.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
