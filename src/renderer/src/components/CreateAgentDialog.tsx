@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '../stores/useAppStore'
-import { X } from 'lucide-react'
+import { X, FolderOpen } from 'lucide-react'
 
 interface CreateAgentDialogProps {
   onClose: () => void
@@ -16,11 +16,25 @@ export function CreateAgentDialog({ onClose }: CreateAgentDialogProps): JSX.Elem
   const [roleLabel, setRoleLabel] = useState('')
   const [systemPrompt, setSystemPrompt] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSelectFolder = async (): Promise<void> => {
+    const folder = await window.api.selectFolder()
+    if (folder) {
+      setProjectPath(folder)
+      if (!projectName.trim()) {
+        // Auto-fill project name from folder name
+        const parts = folder.replace(/\\/g, '/').split('/')
+        setProjectName(parts[parts.length - 1] || '')
+      }
+    }
+  }
 
   const handleCreate = async (): Promise<void> => {
     if (!name.trim() || !projectPath.trim() || !projectName.trim()) return
 
     setLoading(true)
+    setError(null)
     try {
       const agent = await window.api.createAgent({
         name: name.trim(),
@@ -32,6 +46,8 @@ export function CreateAgentDialog({ onClose }: CreateAgentDialogProps): JSX.Elem
       addAgent(agent)
       setSelectedAgent(agent.id)
       onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create agent')
     } finally {
       setLoading(false)
     }
@@ -61,13 +77,22 @@ export function CreateAgentDialog({ onClose }: CreateAgentDialogProps): JSX.Elem
 
           <div>
             <label className="text-xs font-medium text-muted-foreground">{t('agent.projectPath')}</label>
-            <input
-              type="text"
-              value={projectPath}
-              onChange={(e) => setProjectPath(e.target.value)}
-              placeholder="C:/Users/user/my-project"
-              className="w-full mt-1 px-3 py-2 bg-secondary rounded-lg text-sm outline-none"
-            />
+            <div className="flex gap-2 mt-1">
+              <input
+                type="text"
+                value={projectPath}
+                onChange={(e) => setProjectPath(e.target.value)}
+                placeholder="C:/Users/user/my-project"
+                className="flex-1 px-3 py-2 bg-secondary rounded-lg text-sm outline-none"
+              />
+              <button
+                onClick={handleSelectFolder}
+                className="px-3 py-2 bg-secondary rounded-lg hover:bg-accent transition-colors"
+                title="Browse..."
+              >
+                <FolderOpen size={16} />
+              </button>
+            </div>
           </div>
 
           <div>
@@ -103,6 +128,12 @@ export function CreateAgentDialog({ onClose }: CreateAgentDialogProps): JSX.Elem
             />
           </div>
         </div>
+
+        {error && (
+          <div className="mx-4 p-2 bg-destructive/10 text-destructive text-xs rounded">
+            {error}
+          </div>
+        )}
 
         <div className="flex justify-end gap-2 p-4 border-t border-border">
           <button

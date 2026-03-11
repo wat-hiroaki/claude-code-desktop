@@ -30,14 +30,14 @@ export function App(): JSX.Element {
   useEffect(() => {
     loadAgents()
 
-    const unsubOutput = window.api.onAgentOutput((agentId, data) => {
+    const unsubOutput = window.api.onAgentOutput((agentId, message) => {
       addMessage(agentId, {
         id: Date.now(),
         agentId,
-        role: 'agent',
-        contentType: 'text',
-        content: data,
-        metadata: null,
+        role: message.role,
+        contentType: message.contentType,
+        content: message.content,
+        metadata: message.metadata ?? null,
         createdAt: new Date().toISOString()
       })
     })

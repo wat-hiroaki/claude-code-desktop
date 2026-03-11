@@ -1,14 +1,23 @@
-import { spawn, type ChildProcess } from 'child_process'
-import type { Agent, AgentStatus } from '@shared/types'
+import { spawn, exec, type ChildProcess } from 'child_process'
+import { v4 as uuidv4 } from 'uuid'
+import type { Agent, AgentStatus, MessageRole, ContentType } from '@shared/types'
 import type { Database } from './database'
+
+interface ParsedMessage {
+  role: MessageRole
+  contentType: ContentType
+  content: string
+  metadata?: Record<string, unknown>
+}
 
 interface Session {
   agentId: string
   process: ChildProcess | null
-  buffer: string
+  sessionId: string
+  lineBuffer: string
 }
 
-type OutputCallback = (agentId: string, data: string) => void
+type OutputCallback = (agentId: string, message: ParsedMessage) => void
 type StatusCallback = (agentId: string, status: AgentStatus) => void
 
 export class SessionManager {
@@ -24,7 +33,17 @@ export class SessionManager {
   }
 
   async startSession(agent: Agent): Promise<void> {
-    const args = ['--output-format', 'stream-json']
+    const sessionId = agent.claudeSessionId || uuidv4()
+
+    // Use stream-json bidirectional mode
+    const args = [
+      '-p',
+      '--output-format', 'stream-json',
+      '--input-format', 'stream-json',
+      '--session-id', sessionId,
+      '--include-partial-messages',
+      '--verbose'
+    ]
 
     if (agent.systemPrompt) {
       args.push('--system-prompt', agent.systemPrompt)
@@ -33,28 +52,33 @@ export class SessionManager {
     const proc = spawn('claude', args, {
       cwd: agent.projectPath,
       env: { ...process.env },
-      shell: true,
+      shell: false,
       stdio: ['pipe', 'pipe', 'pipe']
     })
 
     const session: Session = {
       agentId: agent.id,
       process: proc,
-      buffer: ''
+      sessionId,
+      lineBuffer: ''
     }
 
-    proc.stdout?.on('data', (data: Buffer) => {
-      const text = data.toString('utf-8')
-      session.buffer += text
-      this.onOutput(agent.id, text)
-      this.detectStatus(agent.id, text)
+    proc.stdout?.setEncoding('utf-8')
+    proc.stderr?.setEncoding('utf-8')
+
+    proc.stdout?.on('data', (chunk: string) => {
+      this.handleChunk(session, chunk)
     })
 
-    proc.stderr?.on('data', (data: Buffer) => {
-      const text = data.toString('utf-8')
-      this.onOutput(agent.id, text)
-      if (text.includes('Error') || text.includes('error')) {
+    proc.stderr?.on('data', (chunk: string) => {
+      // stderr is typically debug/error info
+      if (chunk.includes('Error') || chunk.includes('error')) {
         this.updateStatus(agent.id, 'error')
+        this.onOutput(agent.id, {
+          role: 'system',
+          contentType: 'error',
+          content: chunk.trim()
+        })
       }
     })
 
@@ -65,29 +89,60 @@ export class SessionManager {
       this.sessions.delete(agent.id)
     })
 
+    proc.on('error', (err) => {
+      this.database.updateAgent(agent.id, { status: 'error' })
+      this.onStatusChange(agent.id, 'error')
+      this.onOutput(agent.id, {
+        role: 'system',
+        contentType: 'error',
+        content: `Failed to start Claude CLI: ${err.message}`
+      })
+      this.sessions.delete(agent.id)
+    })
+
     this.sessions.set(agent.id, session)
-    this.database.updateAgent(agent.id, { status: 'active' })
+    this.database.updateAgent(agent.id, { status: 'active', claudeSessionId: sessionId })
     this.onStatusChange(agent.id, 'active')
   }
 
   async sendInput(agentId: string, input: string): Promise<void> {
     const session = this.sessions.get(agentId)
-    if (session?.process?.stdin?.writable) {
-      session.process.stdin.write(input + '\n')
-    }
+    if (!session?.process?.stdin?.writable) return
+
+    // stream-json input format: send JSON message followed by newline
+    const message = JSON.stringify({
+      type: 'user',
+      content: input
+    })
+    session.process.stdin.write(message + '\n')
   }
 
   async interruptSession(agentId: string): Promise<void> {
     const session = this.sessions.get(agentId)
-    if (session?.process) {
-      // Send SIGINT equivalent on Windows
+    if (!session?.process?.pid) return
+
+    if (process.platform === 'win32') {
+      // Windows: use taskkill to kill process tree
+      exec(`taskkill /pid ${session.process.pid} /t /f`, (err) => {
+        if (err) {
+          // Fallback: try regular kill
+          try { session.process?.kill() } catch { /* already dead */ }
+        }
+      })
+    } else {
       session.process.kill('SIGINT')
     }
   }
 
   async stopSession(agentId: string): Promise<void> {
     const session = this.sessions.get(agentId)
-    if (session?.process) {
+    if (!session?.process) return
+
+    if (process.platform === 'win32' && session.process.pid) {
+      exec(`taskkill /pid ${session.process.pid} /t /f`, () => {
+        this.sessions.delete(agentId)
+      })
+    } else {
       session.process.kill()
       this.sessions.delete(agentId)
     }
@@ -99,28 +154,158 @@ export class SessionManager {
     }
   }
 
-  private detectStatus(agentId: string, data: string): void {
+  resumeSession(agent: Agent): Promise<void> {
+    // Resume a previous session by reusing the session ID
+    return this.startSession(agent)
+  }
+
+  private handleChunk(session: Session, chunk: string): void {
+    session.lineBuffer += chunk
+
+    // Process complete lines only
+    const lines = session.lineBuffer.split('\n')
+    // Keep the last incomplete line in the buffer
+    session.lineBuffer = lines.pop() || ''
+
+    for (const line of lines) {
+      const trimmed = line.trim()
+      if (!trimmed) continue
+      this.parseLine(session.agentId, trimmed)
+    }
+  }
+
+  private parseLine(agentId: string, line: string): void {
     try {
-      const lines = data.split('\n').filter((l) => l.trim())
-      for (const line of lines) {
-        if (!line.startsWith('{')) continue
-        const parsed = JSON.parse(line)
-        if (parsed.type === 'assistant') {
-          this.updateStatus(agentId, 'thinking')
-        } else if (parsed.type === 'tool_use') {
-          this.updateStatus(agentId, 'tool_running')
-          this.database.updateAgent(agentId, { currentTask: parsed.name || 'Running tool...' })
-        } else if (parsed.type === 'result') {
-          this.updateStatus(agentId, 'active')
-          this.database.updateAgent(agentId, { currentTask: null })
-        }
-      }
+      const event = JSON.parse(line)
+      this.handleStreamEvent(agentId, event)
     } catch {
-      // Fallback pattern matching
-      if (data.includes('permission') || data.includes('approve')) {
-        this.updateStatus(agentId, 'awaiting')
+      // Non-JSON output, treat as plain text
+      if (line.trim()) {
+        this.onOutput(agentId, {
+          role: 'agent',
+          contentType: 'text',
+          content: line
+        })
       }
     }
+  }
+
+  private handleStreamEvent(agentId: string, event: Record<string, unknown>): void {
+    const type = event.type as string
+
+    switch (type) {
+      case 'system': {
+        this.onOutput(agentId, {
+          role: 'system',
+          contentType: 'text',
+          content: (event.message as string) || 'Session started',
+          metadata: event
+        })
+        this.updateStatus(agentId, 'active')
+        break
+      }
+
+      case 'assistant': {
+        const subtype = event.subtype as string | undefined
+        if (subtype === 'thinking') {
+          this.updateStatus(agentId, 'thinking')
+          // Don't emit thinking content to chat by default
+        } else {
+          const content = this.extractTextContent(event)
+          if (content) {
+            this.onOutput(agentId, {
+              role: 'agent',
+              contentType: 'text',
+              content,
+              metadata: event
+            })
+          }
+        }
+        break
+      }
+
+      case 'tool_use': {
+        this.updateStatus(agentId, 'tool_running')
+        const toolName = (event.name as string) || 'tool'
+        const toolInput = event.input ? JSON.stringify(event.input, null, 2) : ''
+        this.database.updateAgent(agentId, { currentTask: `Running ${toolName}...` })
+        this.onOutput(agentId, {
+          role: 'tool',
+          contentType: 'tool_exec',
+          content: `[${toolName}]\n${toolInput}`,
+          metadata: event
+        })
+        break
+      }
+
+      case 'tool_result': {
+        const content = this.extractTextContent(event)
+        if (content) {
+          this.onOutput(agentId, {
+            role: 'tool',
+            contentType: 'text',
+            content,
+            metadata: event
+          })
+        }
+        this.updateStatus(agentId, 'thinking')
+        break
+      }
+
+      case 'result': {
+        this.updateStatus(agentId, 'active')
+        this.database.updateAgent(agentId, { currentTask: null })
+        const content = this.extractTextContent(event)
+        if (content) {
+          this.onOutput(agentId, {
+            role: 'agent',
+            contentType: 'text',
+            content,
+            metadata: event
+          })
+        }
+        break
+      }
+
+      case 'error': {
+        this.updateStatus(agentId, 'error')
+        this.onOutput(agentId, {
+          role: 'system',
+          contentType: 'error',
+          content: (event.error as string) || (event.message as string) || 'Unknown error',
+          metadata: event
+        })
+        break
+      }
+
+      default: {
+        // Unknown event types — log as system message
+        this.onOutput(agentId, {
+          role: 'system',
+          contentType: 'text',
+          content: JSON.stringify(event),
+          metadata: event
+        })
+      }
+    }
+  }
+
+  private extractTextContent(event: Record<string, unknown>): string {
+    // Handle various content formats from Claude CLI
+    const content = event.content
+    if (typeof content === 'string') return content
+
+    if (Array.isArray(content)) {
+      return (content as Array<Record<string, unknown>>)
+        .filter((block) => block.type === 'text')
+        .map((block) => block.text as string)
+        .join('\n')
+    }
+
+    const message = event.message || event.text || event.result
+    if (typeof message === 'string') return message
+
+    return ''
   }
 
   private updateStatus(agentId: string, status: AgentStatus): void {

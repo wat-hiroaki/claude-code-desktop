@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { ElectronAPI } from '@shared/types'
+import type { ElectronAPI, ParsedOutputMessage } from '@shared/types'
 
 const api: ElectronAPI = {
   // Agent management
@@ -29,10 +29,13 @@ const api: ElectronAPI = {
   // Team stats
   getTeamStats: () => ipcRenderer.invoke('team:stats'),
 
+  // Dialog
+  selectFolder: () => ipcRenderer.invoke('dialog:selectFolder'),
+
   // Events
   onAgentOutput: (callback) => {
-    const handler = (_event: Electron.IpcRendererEvent, agentId: string, data: string): void => {
-      callback(agentId, data)
+    const handler = (_event: Electron.IpcRendererEvent, agentId: string, message: ParsedOutputMessage): void => {
+      callback(agentId, message)
     }
     ipcRenderer.on('agent:output', handler)
     return () => ipcRenderer.removeListener('agent:output', handler)

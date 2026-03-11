@@ -77,6 +77,13 @@ export interface TeamStats {
   completedToday: number
 }
 
+export interface ParsedOutputMessage {
+  role: MessageRole
+  contentType: ContentType
+  content: string
+  metadata?: Record<string, unknown>
+}
+
 export interface ElectronAPI {
   // Agent management
   createAgent: (params: CreateAgentParams) => Promise<Agent>
@@ -105,8 +112,11 @@ export interface ElectronAPI {
   // Team stats
   getTeamStats: () => Promise<TeamStats>
 
+  // Dialog
+  selectFolder: () => Promise<string | null>
+
   // Events
-  onAgentOutput: (callback: (agentId: string, data: string) => void) => () => void
+  onAgentOutput: (callback: (agentId: string, message: ParsedOutputMessage) => void) => () => void
   onAgentStatusChange: (callback: (agentId: string, status: AgentStatus) => void) => () => void
   onNotification: (callback: (title: string, body: string) => void) => () => void
 

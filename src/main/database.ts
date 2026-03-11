@@ -1,6 +1,6 @@
 import { app } from 'electron'
 import { join } from 'path'
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
+import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from 'fs'
 import { v4 as uuidv4 } from 'uuid'
 import type { Agent, Message, TaskChain, Broadcast, CreateAgentParams, TeamStats } from '@shared/types'
 
@@ -41,7 +41,10 @@ export class Database {
   }
 
   private save(): void {
-    writeFileSync(this.dbPath, JSON.stringify(this.data, null, 2), 'utf-8')
+    // Atomic write: write to temp file then rename
+    const tmpPath = this.dbPath + '.tmp'
+    writeFileSync(tmpPath, JSON.stringify(this.data, null, 2), 'utf-8')
+    renameSync(tmpPath, this.dbPath)
   }
 
   // Agents
