@@ -1,0 +1,111 @@
+{
+  "app": {
+    "title": "Claude Code Desktop",
+    "subtitle": "AI エージェントチームマネジメント"
+  },
+  "agent": {
+    "new": "新規エージェント",
+    "name": "エージェント名",
+    "role": "役割",
+    "project": "プロジェクト",
+    "projectPath": "プロジェクトパス",
+    "systemPrompt": "システムプロンプト",
+    "status": {
+      "creating": "起動中...",
+      "active": "待機中",
+      "thinking": "思考中...",
+      "tool_running": "実行中...",
+      "awaiting": "承認待ち",
+      "error": "エラー",
+      "idle": "休憩中",
+      "archived": "退勤済み"
+    },
+    "actions": {
+      "restart": "リスタート",
+      "interrupt": "中断",
+      "archive": "アーカイブ",
+      "pin": "ピン留め",
+      "unpin": "ピン解除",
+      "rename": "名前変更",
+      "changeRole": "役割変更"
+    },
+    "noAgents": "エージェントがいません。作成して始めましょう！",
+    "currentTask": "現在のタスク"
+  },
+  "chat": {
+    "placeholder": "メッセージを入力...（Enterで送信、Shift+Enterで改行）",
+    "send": "送信",
+    "selectAgent": "エージェントを選択して会話を始めましょう",
+    "noMessages": "メッセージはまだありません。話しかけてみましょう！"
+  },
+  "dashboard": {
+    "title": "チームダッシュボード",
+    "active": "稼働中",
+    "awaiting": "承認待ち",
+    "errors": "エラー",
+    "completedToday": "本日完了",
+    "views": {
+      "grid": "グリッド",
+      "kanban": "カンバン",
+      "timeline": "タイムライン"
+    }
+  },
+  "broadcast": {
+    "title": "チーム会議",
+    "subtitle": "複数のエージェントにメッセージを一括送信",
+    "selectAll": "全員選択",
+    "selectByProject": "プロジェクト別",
+    "selectByRole": "役割別",
+    "send": "一括送信",
+    "placeholder": "ブロードキャストメッセージを入力..."
+  },
+  "chain": {
+    "title": "タスクチェーン",
+    "new": "新規チェーン",
+    "trigger": "トリガーエージェント",
+    "condition": "条件",
+    "target": "ターゲットエージェント",
+    "message": "メッセージテンプレート",
+    "onError": "エラー時",
+    "conditions": {
+      "complete": "完了時",
+      "keyword": "キーワード検出時",
+      "no_error": "成功時（エラーなし）"
+    },
+    "errorHandling": {
+      "stop": "チェーン停止",
+      "skip": "スキップして続行",
+      "notify_only": "通知のみ"
+    }
+  },
+  "settings": {
+    "title": "設定",
+    "language": "言語",
+    "theme": "テーマ",
+    "themes": {
+      "dark": "ダーク",
+      "light": "ライト",
+      "system": "システム"
+    },
+    "notifications": "通知",
+    "notificationSettings": {
+      "enabled": "通知を有効にする",
+      "sound": "サウンド",
+      "taskComplete": "タスク完了",
+      "approvalRequired": "承認待ち",
+      "errors": "エラー"
+    }
+  },
+  "common": {
+    "create": "作成",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "close": "閉じる",
+    "search": "検索...",
+    "loading": "読み込み中...",
+    "confirm": "確認",
+    "approve": "承認",
+    "reject": "拒否"
+  }
+}

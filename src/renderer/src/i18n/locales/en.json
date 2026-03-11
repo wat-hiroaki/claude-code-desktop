@@ -1,0 +1,111 @@
+{
+  "app": {
+    "title": "Claude Code Desktop",
+    "subtitle": "AI Agent Team Management"
+  },
+  "agent": {
+    "new": "New Agent",
+    "name": "Agent Name",
+    "role": "Role",
+    "project": "Project",
+    "projectPath": "Project Path",
+    "systemPrompt": "System Prompt",
+    "status": {
+      "creating": "Starting...",
+      "active": "Ready",
+      "thinking": "Thinking...",
+      "tool_running": "Running...",
+      "awaiting": "Approval Required",
+      "error": "Error",
+      "idle": "Idle",
+      "archived": "Archived"
+    },
+    "actions": {
+      "restart": "Restart",
+      "interrupt": "Interrupt",
+      "archive": "Archive",
+      "pin": "Pin",
+      "unpin": "Unpin",
+      "rename": "Rename",
+      "changeRole": "Change Role"
+    },
+    "noAgents": "No agents yet. Create one to get started!",
+    "currentTask": "Current task"
+  },
+  "chat": {
+    "placeholder": "Type a message... (Enter to send, Shift+Enter for new line)",
+    "send": "Send",
+    "selectAgent": "Select an agent to start chatting",
+    "noMessages": "No messages yet. Say something!"
+  },
+  "dashboard": {
+    "title": "Team Dashboard",
+    "active": "Active",
+    "awaiting": "Awaiting",
+    "errors": "Errors",
+    "completedToday": "Completed Today",
+    "views": {
+      "grid": "Grid",
+      "kanban": "Kanban",
+      "timeline": "Timeline"
+    }
+  },
+  "broadcast": {
+    "title": "Team Meeting",
+    "subtitle": "Send a message to multiple agents",
+    "selectAll": "Select All",
+    "selectByProject": "By Project",
+    "selectByRole": "By Role",
+    "send": "Broadcast",
+    "placeholder": "Enter broadcast message..."
+  },
+  "chain": {
+    "title": "Task Chains",
+    "new": "New Chain",
+    "trigger": "Trigger Agent",
+    "condition": "Condition",
+    "target": "Target Agent",
+    "message": "Message Template",
+    "onError": "On Error",
+    "conditions": {
+      "complete": "On Complete",
+      "keyword": "On Keyword",
+      "no_error": "On Success (No Error)"
+    },
+    "errorHandling": {
+      "stop": "Stop Chain",
+      "skip": "Skip & Continue",
+      "notify_only": "Notify Only"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "themes": {
+      "dark": "Dark",
+      "light": "Light",
+      "system": "System"
+    },
+    "notifications": "Notifications",
+    "notificationSettings": {
+      "enabled": "Enable Notifications",
+      "sound": "Sound",
+      "taskComplete": "Task Complete",
+      "approvalRequired": "Approval Required",
+      "errors": "Errors"
+    }
+  },
+  "common": {
+    "create": "Create",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "close": "Close",
+    "search": "Search...",
+    "loading": "Loading...",
+    "confirm": "Confirm",
+    "approve": "Approve",
+    "reject": "Reject"
+  }
+}
