@@ -4,9 +4,13 @@ import { App } from './App'
 import './i18n'
 import './assets/globals.css'
 
-// Initialize dark mode
+// Initialize theme from localStorage
 const savedTheme = localStorage.getItem('theme') || 'dark'
-document.documentElement.classList.toggle('dark', savedTheme === 'dark')
+const isDark =
+  savedTheme === 'dark' ||
+  (savedTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+document.documentElement.classList.toggle('dark', isDark)
+window.api?.setTitleBarTheme(isDark)
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

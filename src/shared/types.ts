@@ -123,4 +123,5 @@ export interface ElectronAPI {
   // App
   getAppVersion: () => Promise<string>
   getPlatform: () => string
+  setTitleBarTheme: (isDark: boolean) => Promise<void>
 }

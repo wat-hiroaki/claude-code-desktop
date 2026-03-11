@@ -57,7 +57,8 @@ const api: ElectronAPI = {
 
   // App
   getAppVersion: () => ipcRenderer.invoke('app:version'),
-  getPlatform: () => process.platform
+  getPlatform: () => process.platform,
+  setTitleBarTheme: (isDark: boolean) => ipcRenderer.invoke('app:titlebar-theme', isDark)
 }
 
 contextBridge.exposeInMainWorld('api', api)

@@ -60,10 +60,22 @@ export function App(): JSX.Element {
       showToast(title, body, title.includes('Error') ? 'error' : 'warning')
     })
 
+    // Listen for OS theme changes (when theme is 'system')
+    const mql = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleSystemTheme = (e: MediaQueryListEvent): void => {
+      const currentTheme = useAppStore.getState().theme
+      if (currentTheme === 'system') {
+        document.documentElement.classList.toggle('dark', e.matches)
+        window.api?.setTitleBarTheme(e.matches)
+      }
+    }
+    mql.addEventListener('change', handleSystemTheme)
+
     return () => {
       unsubOutput()
       unsubStatus()
       unsubNotification()
+      mql.removeEventListener('change', handleSystemTheme)
     }
   }, [loadAgents, addMessage, updateAgentInList, setTeamStats])
 

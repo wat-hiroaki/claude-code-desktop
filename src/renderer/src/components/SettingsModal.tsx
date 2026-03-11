@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '../stores/useAppStore'
-import { X, Moon, Sun, Globe, Bell } from 'lucide-react'
+import { X, Moon, Sun, Monitor, Globe, Bell } from 'lucide-react'
 import { cn } from '../lib/utils'
 
 interface SettingsModalProps {
@@ -29,10 +29,20 @@ export function SettingsModal({ onClose }: SettingsModalProps): JSX.Element {
     localStorage.setItem('notifications', JSON.stringify(updated))
   }
 
-  const handleThemeChange = (newTheme: 'dark' | 'light'): void => {
+  const handleThemeChange = (newTheme: 'dark' | 'light' | 'system'): void => {
     setTheme(newTheme)
-    localStorage.setItem('theme', newTheme)
   }
+
+  // Listen for OS theme changes when in system mode
+  useEffect(() => {
+    if (theme !== 'system') return
+    const mql = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = (e: MediaQueryListEvent): void => {
+      document.documentElement.classList.toggle('dark', e.matches)
+    }
+    mql.addEventListener('change', handler)
+    return () => mql.removeEventListener('change', handler)
+  }, [theme])
 
   const handleLanguageChange = (lang: string): void => {
     i18n.changeLanguage(lang)
@@ -57,30 +67,25 @@ export function SettingsModal({ onClose }: SettingsModalProps): JSX.Element {
               {t('settings.theme')}
             </div>
             <div className="flex gap-2">
-              <button
-                onClick={() => handleThemeChange('light')}
-                className={cn(
-                  'flex-1 py-2 px-3 rounded-lg text-sm border transition-colors',
-                  theme === 'light'
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border hover:bg-accent'
-                )}
-              >
-                <Sun size={14} className="inline mr-2" />
-                {t('settings.themes.light')}
-              </button>
-              <button
-                onClick={() => handleThemeChange('dark')}
-                className={cn(
-                  'flex-1 py-2 px-3 rounded-lg text-sm border transition-colors',
-                  theme === 'dark'
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border hover:bg-accent'
-                )}
-              >
-                <Moon size={14} className="inline mr-2" />
-                {t('settings.themes.dark')}
-              </button>
+              {([
+                { value: 'light' as const, icon: Sun, label: t('settings.themes.light') },
+                { value: 'dark' as const, icon: Moon, label: t('settings.themes.dark') },
+                { value: 'system' as const, icon: Monitor, label: t('settings.themes.system') }
+              ]).map(({ value, icon: Icon, label }) => (
+                <button
+                  key={value}
+                  onClick={() => handleThemeChange(value)}
+                  className={cn(
+                    'flex-1 py-2 px-3 rounded-lg text-sm border transition-colors',
+                    theme === value
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:bg-accent'
+                  )}
+                >
+                  <Icon size={14} className="inline mr-2" />
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
 

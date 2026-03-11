@@ -29,8 +29,8 @@ interface AppState {
   toggleBroadcast: () => void
 
   // Theme
-  theme: 'dark' | 'light'
-  setTheme: (theme: 'dark' | 'light') => void
+  theme: 'dark' | 'light' | 'system'
+  setTheme: (theme: 'dark' | 'light' | 'system') => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -73,9 +73,14 @@ export const useAppStore = create<AppState>((set) => ({
   toggleBroadcast: () => set((s) => ({ showBroadcast: !s.showBroadcast })),
 
   // Theme
-  theme: 'dark',
+  theme: (localStorage.getItem('theme') as 'dark' | 'light' | 'system') || 'dark',
   setTheme: (theme) => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
+    const isDark =
+      theme === 'dark' ||
+      (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    document.documentElement.classList.toggle('dark', isDark)
+    localStorage.setItem('theme', theme)
+    window.api?.setTitleBarTheme(isDark)
     set({ theme })
   }
 }))

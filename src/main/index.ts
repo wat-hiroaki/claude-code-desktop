@@ -238,6 +238,14 @@ function setupIPC(): void {
   ipcMain.handle('app:version', () => {
     return app.getVersion()
   })
+
+  ipcMain.handle('app:titlebar-theme', (_event, isDark: boolean) => {
+    if (!mainWindow) return
+    mainWindow.setTitleBarOverlay({
+      color: isDark ? '#1a1a2e' : '#ffffff',
+      symbolColor: isDark ? '#e0e0e0' : '#333333'
+    })
+  })
 }
 
 // Extend app type for isQuitting flag
