@@ -249,7 +249,7 @@ export function AgentList(): JSX.Element {
   }
 
   return (
-    <div className="flex flex-col w-64 min-w-[220px] max-w-[320px] border-r border-border bg-card resize-x overflow-hidden">
+    <div className="flex flex-col w-64 min-w-[220px] max-w-[320px] border-r border-border bg-card resize-x overflow-hidden" role="navigation" aria-label="Agent sidebar">
       {/* Workspace Switcher */}
       <div className="p-2 border-b border-border">
         <WorkspaceSwitcher />
@@ -296,7 +296,7 @@ export function AgentList(): JSX.Element {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" role="list" aria-label="Agent list">
         {/* ── Inbox Section ── */}
         {attentionAgents.length > 0 && !search && (
           <div className="border-b border-border">

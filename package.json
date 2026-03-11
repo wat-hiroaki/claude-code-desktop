@@ -1,7 +1,7 @@
 {
   "name": "claude-code-desktop",
-  "version": "0.1.0",
-  "description": "AI Agent Team Management Client — Manage Claude Code sessions like team members",
+  "version": "0.2.0",
+  "description": "AI Agent Workspace Manager — Multi-workspace management for Claude Code CLI sessions",
   "main": "./out/main/index.js",
   "homepage": "https://github.com/wat-hiroaki/claude-code-desktop",
   "repository": {

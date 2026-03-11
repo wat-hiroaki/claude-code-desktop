@@ -138,7 +138,20 @@ export function Composer({ agentId, disabled = false, className }: ComposerProps
   }, [showTemplates])
 
   return (
-    <div className={cn('border-t border-border/50 bg-card/80 backdrop-blur-sm', className)}>
+    <div
+      className={cn('border-t border-border/50 bg-card/80 backdrop-blur-sm', className)}
+      onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('ring-2', 'ring-primary/50') }}
+      onDragLeave={(e) => { e.currentTarget.classList.remove('ring-2', 'ring-primary/50') }}
+      onDrop={(e) => {
+        e.preventDefault()
+        e.currentTarget.classList.remove('ring-2', 'ring-primary/50')
+        const files = Array.from(e.dataTransfer.files)
+        if (files.length > 0) {
+          const paths = files.map((f) => f.path).filter(Boolean).join('\n')
+          if (paths) setValue((v) => v + (v ? '\n' : '') + paths)
+        }
+      }}
+    >
       <div className="flex items-end gap-2 p-2">
         <textarea
           ref={textareaRef}
