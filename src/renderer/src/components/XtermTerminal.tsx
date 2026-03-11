@@ -73,6 +73,7 @@ export function XtermTerminal({ agentId, theme = 'dark', fontSize = 13 }: XtermT
     }
   }, [agentId])
 
+  // Create terminal on agentId change only
   useEffect(() => {
     if (!containerRef.current) return
 
@@ -134,7 +135,16 @@ export function XtermTerminal({ agentId, theme = 'dark', fontSize = 13 }: XtermT
       terminalRef.current = null
       fitAddonRef.current = null
     }
-  }, [agentId, theme, fontSize, handleResize])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agentId])
+
+  // Update theme/fontSize without recreating terminal
+  useEffect(() => {
+    if (!terminalRef.current) return
+    terminalRef.current.options.theme = theme === 'dark' ? DARK_THEME : LIGHT_THEME
+    terminalRef.current.options.fontSize = fontSize
+    fitAddonRef.current?.fit()
+  }, [theme, fontSize])
 
   return (
     <div
