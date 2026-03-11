@@ -26,16 +26,31 @@ interface ComposerProps {
   className?: string
 }
 
+// Per-agent message history (persists across re-renders, max 50 entries)
+const historyMap = new Map<string, string[]>()
+
 export function Composer({ agentId, disabled = false, className }: ComposerProps): JSX.Element {
   const { t } = useTranslation()
   const [value, setValue] = useState('')
   const [showTemplates, setShowTemplates] = useState(false)
+  const [historyIndex, setHistoryIndex] = useState(-1)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const templatesRef = useRef<HTMLDivElement>(null)
+  const savedDraft = useRef('')
 
   const handleSend = useCallback(() => {
     const trimmed = value.trim()
     if (!trimmed || disabled) return
+
+    // Add to history
+    const history = historyMap.get(agentId) ?? []
+    if (history[0] !== trimmed) {
+      history.unshift(trimmed)
+      if (history.length > 50) history.pop()
+      historyMap.set(agentId, history)
+    }
+    setHistoryIndex(-1)
+    savedDraft.current = ''
 
     // Send to PTY stdin with newline
     window.api.ptyWrite(agentId, trimmed + '\n')
@@ -59,9 +74,32 @@ export function Composer({ agentId, disabled = false, className }: ComposerProps
       if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault()
         handleSend()
+        return
+      }
+      // Up arrow — browse history (only when cursor is at the start or value is empty)
+      const history = historyMap.get(agentId) ?? []
+      if (e.key === 'ArrowUp' && history.length > 0) {
+        const textarea = textareaRef.current
+        if (textarea && (textarea.selectionStart === 0 || !value)) {
+          e.preventDefault()
+          if (historyIndex === -1) savedDraft.current = value
+          const newIdx = Math.min(historyIndex + 1, history.length - 1)
+          setHistoryIndex(newIdx)
+          setValue(history[newIdx])
+        }
+      }
+      // Down arrow — forward in history
+      if (e.key === 'ArrowDown' && historyIndex >= 0) {
+        const textarea = textareaRef.current
+        if (textarea && (textarea.selectionStart === value.length || !value)) {
+          e.preventDefault()
+          const newIdx = historyIndex - 1
+          setHistoryIndex(newIdx)
+          setValue(newIdx < 0 ? savedDraft.current : history[newIdx])
+        }
       }
     },
-    [handleSend]
+    [handleSend, agentId, value, historyIndex]
   )
 
   const handleInput = useCallback(() => {

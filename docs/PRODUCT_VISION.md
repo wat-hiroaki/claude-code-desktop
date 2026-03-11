@@ -161,14 +161,15 @@ Workspace（Company-A / Personal / ...）
 
 ### Phase 1: Foundation
 
-1. ✅ **Workspace model** — ワークスペースの CRUD、設定隔離、UI スイッチャー
-2. ⬜ **SSH connection** — リモートホストへの SSH 接続、鍵認証
-3. ⬜ **tmux integration** — セッション作成・アタッチ・デタッチ
-4. ✅ **xterm.js terminal** — メインエリアにリアルターミナル表示（node-pty）
-5. ✅ **LINE-style sidebar** — エージェント一覧、ステータス、最新出力プレビュー
-6. ✅ **Composer** — リッチテキスト入力エリア（テンプレート付き）
-7. ✅ **PTY mode sync** — main/renderer 間のモード設定同期、全IPC対応
+1. ✅ **Workspace model** — ワークスペースの CRUD、設定隔離、UI スイッチャー、SSH設定ダイアログ
+2. ✅ **SSH connection** — リモートホストへの SSH 接続、鍵認証、接続テスト
+3. ✅ **tmux integration** — セッション作成・アタッチ・デタッチ、自動命名 (ccd-\<ws\>-\<agent\>)
+4. ✅ **xterm.js terminal** — メインエリアにリアルターミナル表示（node-pty + ssh2）
+5. ✅ **LINE-style sidebar** — エージェント一覧、ステータス、最新出力、ワークスペースフィルタ
+6. ✅ **Composer** — リッチテキスト入力エリア（テンプレート付き、自動展開）
+7. ✅ **PTY mode sync** — main/renderer 間のモード設定同期、全IPC対応（SSH自動ルーティング含む）
 8. ✅ **Session lifecycle** — セッション終了検出、再起動バナー、二重起動防止
+9. ✅ **Agent Profile View** — CLAUDE.md, Memory, Skills, MCP, Hooks の可視化
 
 ### Phase 2: Agent Context Visualization
 

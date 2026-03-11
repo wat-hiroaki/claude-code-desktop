@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '../stores/useAppStore'
 import { CreateAgentDialog } from './CreateAgentDialog'
+import { showToast } from './ToastContainer'
 import {
   Plus,
   Search,
@@ -9,7 +10,12 @@ import {
   ChevronDown,
   ChevronRight,
   FolderOpen,
-  ExternalLink
+  ExternalLink,
+  RotateCw,
+  Archive,
+  Copy,
+  Pin,
+  PinOff
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { getStatusDot, getInitials } from '../lib/status'
@@ -42,6 +48,8 @@ export function AgentList(): JSX.Element {
   const [createForProject, setCreateForProject] = useState<string | null>(null)
   const [inboxExpanded, setInboxExpanded] = useState(false)
   const [collapsedProjects, setCollapsedProjects] = useState<Set<string>>(new Set())
+  const [contextMenu, setContextMenu] = useState<{ agentId: string; x: number; y: number } | null>(null)
+  const contextMenuRef = useRef<HTMLDivElement>(null)
 
   // Agents needing attention: awaiting or error (filtered by workspace)
   const attentionAgents = useMemo(() => {
@@ -106,6 +114,80 @@ export function AgentList(): JSX.Element {
     }
     return { preview: t(`agent.status.${agent.status}`), time: agent.updatedAt }
   }
+
+  // Close context menu on outside click
+  useEffect(() => {
+    if (!contextMenu) return
+    const handler = (e: MouseEvent): void => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(e.target as Node)) {
+        setContextMenu(null)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [contextMenu])
+
+  const handleContextMenu = useCallback((e: React.MouseEvent, agentId: string) => {
+    e.preventDefault()
+    setContextMenu({ agentId, x: e.clientX, y: e.clientY })
+  }, [])
+
+  const handleArchiveAgent = useCallback(async (agentId: string) => {
+    const agent = agents.find((a) => a.id === agentId)
+    if (!agent) return
+    setContextMenu(null)
+    if (!confirm(`Archive agent "${agent.name}"?`)) return
+    try {
+      await window.api.archiveAgent(agentId)
+      const remaining = agents.filter((a) => a.id !== agentId && a.status !== 'archived')
+      if (selectedAgentId === agentId) {
+        setSelectedAgent(remaining.length > 0 ? remaining[0].id : null)
+      }
+      // Reload is done by status change event
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : String(err), 'error')
+    }
+  }, [agents, selectedAgentId, setSelectedAgent])
+
+  const handleRestartAgent = useCallback(async (agentId: string) => {
+    setContextMenu(null)
+    try {
+      await window.api.restartAgent(agentId)
+      showToast('Agent restarted', 'success')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : String(err), 'error')
+    }
+  }, [])
+
+  const handleTogglePin = useCallback(async (agentId: string) => {
+    const agent = agents.find((a) => a.id === agentId)
+    if (!agent) return
+    setContextMenu(null)
+    await window.api.updateAgent(agentId, { isPinned: !agent.isPinned })
+    useAppStore.getState().updateAgentInList(agentId, { isPinned: !agent.isPinned })
+  }, [agents])
+
+  const handleDuplicate = useCallback(async (agentId: string) => {
+    const agent = agents.find((a) => a.id === agentId)
+    if (!agent) return
+    setContextMenu(null)
+    try {
+      const newAgent = await window.api.createAgent({
+        name: `${agent.name} (copy)`,
+        projectPath: agent.projectPath,
+        projectName: agent.projectName,
+        roleLabel: agent.roleLabel ?? undefined,
+        systemPrompt: agent.systemPrompt ?? undefined,
+        skills: agent.skills.length > 0 ? agent.skills : undefined,
+        reportTo: agent.reportTo ?? undefined
+      })
+      useAppStore.getState().addAgent(newAgent)
+      setSelectedAgent(newAgent.id)
+      showToast(`Agent "${newAgent.name}" created`, 'success')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : String(err), 'error')
+    }
+  }, [agents, setSelectedAgent])
 
   const handleCreateForProject = (projectName: string): void => {
     setCreateForProject(projectName)
@@ -275,6 +357,7 @@ export function AgentList(): JSX.Element {
                       <button
                         key={agent.id}
                         onClick={() => setSelectedAgent(agent.id)}
+                        onContextMenu={(e) => handleContextMenu(e, agent.id)}
                         className={cn(
                           'w-full flex items-center gap-2 pl-7 pr-2.5 py-1.5 text-left transition-colors hover:bg-accent/50',
                           selectedAgentId === agent.id && 'bg-accent'
@@ -317,6 +400,49 @@ export function AgentList(): JSX.Element {
           })
         )}
       </div>
+
+      {/* Context Menu */}
+      {contextMenu && (() => {
+        const ctxAgent = agents.find((a) => a.id === contextMenu.agentId)
+        if (!ctxAgent) return null
+        return (
+          <div
+            ref={contextMenuRef}
+            className="fixed z-[100] bg-card border border-border rounded-lg shadow-xl py-1 min-w-[160px]"
+            style={{ left: contextMenu.x, top: contextMenu.y }}
+          >
+            <button
+              onClick={() => handleTogglePin(ctxAgent.id)}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-muted/50 transition-colors"
+            >
+              {ctxAgent.isPinned ? <PinOff size={12} /> : <Pin size={12} />}
+              {ctxAgent.isPinned ? t('agent.actions.unpin') : t('agent.actions.pin')}
+            </button>
+            <button
+              onClick={() => handleRestartAgent(ctxAgent.id)}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-muted/50 transition-colors"
+            >
+              <RotateCw size={12} />
+              {t('agent.actions.restart')}
+            </button>
+            <button
+              onClick={() => handleDuplicate(ctxAgent.id)}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-muted/50 transition-colors"
+            >
+              <Copy size={12} />
+              Duplicate
+            </button>
+            <div className="border-t border-border/50 my-1" />
+            <button
+              onClick={() => handleArchiveAgent(ctxAgent.id)}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-muted/50 text-red-400 transition-colors"
+            >
+              <Archive size={12} />
+              {t('agent.actions.archive')}
+            </button>
+          </div>
+        )
+      })()}
 
       {showCreate && (
         <CreateAgentDialog
