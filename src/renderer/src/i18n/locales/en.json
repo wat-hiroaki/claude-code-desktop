@@ -232,6 +232,13 @@
     "reject": "Reject"
   },
   "terminal": {
+    "noAgent": "No agent selected",
+    "interrupt": "Interrupt (Ctrl+C)",
+    "restart": "Restart",
+    "stop": "Stop",
+    "exited": "Session ended",
+    "exitedError": "Session exited with error",
+    "restartSession": "Restart",
     "action": {
       "reading": "Reading",
       "editing": "Editing",

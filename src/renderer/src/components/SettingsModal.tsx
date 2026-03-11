@@ -11,6 +11,11 @@ interface SettingsModalProps {
 export function SettingsModal({ onClose }: SettingsModalProps): JSX.Element {
   const { t, i18n } = useTranslation()
   const { theme, setTheme, usePtyMode, setUsePtyMode } = useAppStore()
+  const [appVersion, setAppVersion] = useState('')
+
+  useEffect(() => {
+    window.api.getAppVersion().then(setAppVersion)
+  }, [])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent): void => {
@@ -176,6 +181,11 @@ export function SettingsModal({ onClose }: SettingsModalProps): JSX.Element {
                 </label>
               ))}
             </div>
+          </div>
+
+          {/* Version */}
+          <div className="text-center text-[10px] text-muted-foreground/50 pt-2 border-t border-border/30">
+            Claude Code Desktop v{appVersion || '0.0.0'}
           </div>
         </div>
       </div>

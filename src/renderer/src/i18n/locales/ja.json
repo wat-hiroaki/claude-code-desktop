@@ -232,6 +232,13 @@
     "reject": "拒否"
   },
   "terminal": {
+    "noAgent": "エージェントが選択されていません",
+    "interrupt": "中断 (Ctrl+C)",
+    "restart": "リスタート",
+    "stop": "停止",
+    "exited": "セッション終了",
+    "exitedError": "セッションがエラーで終了しました",
+    "restartSession": "再起動",
     "action": {
       "reading": "読み取り中",
       "editing": "編集中",
