@@ -35,10 +35,14 @@ export function CreateAgentDialog({ onClose, prefill }: CreateAgentDialogProps):
     const folder = await window.api.selectFolder()
     if (folder) {
       setProjectPath(folder)
+      const parts = folder.replace(/\\/g, '/').split('/')
+      const folderName = parts[parts.length - 1] || ''
       if (!projectName.trim()) {
-        // Auto-fill project name from folder name
-        const parts = folder.replace(/\\/g, '/').split('/')
-        setProjectName(parts[parts.length - 1] || '')
+        setProjectName(folderName)
+      }
+      if (!name.trim() && folderName) {
+        // Auto-suggest agent name from folder
+        setName(`${folderName} Dev`)
       }
     }
   }

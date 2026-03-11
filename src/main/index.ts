@@ -169,7 +169,12 @@ function setupIPC(): void {
       throw new Error('Invalid message parameters')
     }
     database.addMessage(agentId, 'manager', 'text', content)
-    await sessionManager.sendInput(agentId, content)
+    const { usePtyMode } = database.getSettings()
+    if (usePtyMode) {
+      ptySessionManager.writeInput(agentId, content + '\n')
+    } else {
+      await sessionManager.sendInput(agentId, content)
+    }
   })
 
   ipcMain.handle('message:list', (_event, agentId: string) => {
@@ -209,9 +214,14 @@ function setupIPC(): void {
       throw new Error('Invalid broadcast parameters')
     }
     const broadcastId = database.createBroadcast(message, agentIds)
+    const { usePtyMode } = database.getSettings()
     await Promise.all(agentIds.map(async (agentId) => {
       database.addMessage(agentId, 'manager', 'text', message)
-      await sessionManager.sendInput(agentId, message)
+      if (usePtyMode) {
+        ptySessionManager.writeInput(agentId, message + '\n')
+      } else {
+        await sessionManager.sendInput(agentId, message)
+      }
     }))
     database.updateBroadcast(broadcastId, { status: 'sent' })
     return broadcastId
