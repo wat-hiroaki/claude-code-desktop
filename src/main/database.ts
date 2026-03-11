@@ -2,7 +2,7 @@ import { app } from 'electron'
 import { join } from 'path'
 import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from 'fs'
 import { v4 as uuidv4 } from 'uuid'
-import type { Agent, Team, Message, TaskChain, Broadcast, CreateAgentParams, TeamStats } from '@shared/types'
+import type { Agent, Team, Message, TaskChain, Broadcast, CreateAgentParams, TeamStats, Workspace, CreateWorkspaceParams } from '@shared/types'
 
 interface DBData {
   agents: Agent[]
@@ -10,6 +10,8 @@ interface DBData {
   messages: Message[]
   taskChains: TaskChain[]
   broadcasts: Broadcast[]
+  workspaces: Workspace[]
+  activeWorkspaceId: string | null
   nextMessageId: number
 }
 
@@ -38,6 +40,8 @@ export class Database {
       messages: [],
       taskChains: [],
       broadcasts: [],
+      workspaces: [],
+      activeWorkspaceId: null,
       nextMessageId: 1
     }
   }
@@ -60,6 +64,7 @@ export class Database {
       name: params.name,
       icon: null,
       roleLabel: params.roleLabel ?? null,
+      workspaceId: this.data.activeWorkspaceId,
       projectPath: params.projectPath,
       projectName: params.projectName,
       sessionNumber,
@@ -89,9 +94,10 @@ export class Database {
     return this.data.agents.find((a) => a.id === id) ?? null
   }
 
-  getAgents(): Agent[] {
+  getAgents(workspaceId?: string | null): Agent[] {
     return this.data.agents
       .filter((a) => a.status !== 'archived')
+      .filter((a) => workspaceId === undefined || a.workspaceId === workspaceId)
       .sort((a, b) => {
         if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1
         return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
@@ -226,6 +232,63 @@ export class Database {
       error: agents.filter((a) => a.status === 'error').length,
       completedToday: 0
     }
+  }
+
+  // Workspaces
+  createWorkspace(params: CreateWorkspaceParams): Workspace {
+    const now = new Date().toISOString()
+    const workspace: Workspace = {
+      id: uuidv4(),
+      name: params.name,
+      color: params.color ?? '#748ffc',
+      connectionType: params.connectionType,
+      sshConfig: params.sshConfig,
+      configStorageLocation: 'local',
+      isActive: false,
+      createdAt: now,
+      updatedAt: now
+    }
+    this.data.workspaces.push(workspace)
+    this.save()
+    return workspace
+  }
+
+  getWorkspaces(): Workspace[] {
+    return this.data.workspaces
+  }
+
+  updateWorkspace(id: string, updates: Partial<Workspace>): Workspace {
+    const ws = this.data.workspaces.find((w) => w.id === id)
+    if (!ws) throw new Error(`Workspace ${id} not found`)
+    const allowedFields = ['name', 'color', 'connectionType', 'sshConfig', 'configStorageLocation', 'isActive']
+    for (const [key, value] of Object.entries(updates)) {
+      if (allowedFields.includes(key)) {
+        (ws as Record<string, unknown>)[key] = value
+      }
+    }
+    ws.updatedAt = new Date().toISOString()
+    this.save()
+    return ws
+  }
+
+  deleteWorkspace(id: string): void {
+    this.data.workspaces = this.data.workspaces.filter((w) => w.id !== id)
+    if (this.data.activeWorkspaceId === id) {
+      this.data.activeWorkspaceId = null
+    }
+    this.save()
+  }
+
+  setActiveWorkspace(id: string | null): void {
+    if (id && !this.data.workspaces.find((w) => w.id === id)) {
+      throw new Error(`Workspace ${id} not found`)
+    }
+    this.data.activeWorkspaceId = id
+    this.save()
+  }
+
+  getActiveWorkspaceId(): string | null {
+    return this.data.activeWorkspaceId
   }
 
   close(): void {

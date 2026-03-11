@@ -262,6 +262,31 @@ function setupIPC(): void {
     return app.getVersion()
   })
 
+  // Workspaces
+  ipcMain.handle('workspace:create', (_event, params: unknown) => {
+    const p = params as Record<string, unknown>
+    if (!p.name || typeof p.name !== 'string') throw new Error('name is required')
+    return database.createWorkspace(p as import('@shared/types').CreateWorkspaceParams)
+  })
+
+  ipcMain.handle('workspace:list', () => {
+    return database.getWorkspaces()
+  })
+
+  ipcMain.handle('workspace:update', (_event, id: string, updates: unknown) => {
+    if (typeof id !== 'string') throw new Error('Invalid workspace ID')
+    return database.updateWorkspace(id, updates as Partial<import('@shared/types').Workspace>)
+  })
+
+  ipcMain.handle('workspace:delete', (_event, id: string) => {
+    if (typeof id !== 'string') throw new Error('Invalid workspace ID')
+    database.deleteWorkspace(id)
+  })
+
+  ipcMain.handle('workspace:setActive', (_event, id: unknown) => {
+    database.setActiveWorkspace(id === null ? null : String(id))
+  })
+
   // Workspace scanner
   ipcMain.handle('workspace:scan', async (_event, rootPath: string) => {
     if (typeof rootPath !== 'string' || !rootPath.trim()) {

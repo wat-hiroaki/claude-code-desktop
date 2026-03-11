@@ -61,6 +61,13 @@ const api: ElectronAPI = {
     return () => ipcRenderer.removeListener('notification', handler)
   },
 
+  // Workspaces
+  createWorkspace: (params) => ipcRenderer.invoke('workspace:create', params),
+  getWorkspaces: () => ipcRenderer.invoke('workspace:list'),
+  updateWorkspace: (id, updates) => ipcRenderer.invoke('workspace:update', id, updates),
+  deleteWorkspace: (id) => ipcRenderer.invoke('workspace:delete', id),
+  setActiveWorkspace: (id) => ipcRenderer.invoke('workspace:setActive', id),
+
   // Workspace scanner
   scanWorkspaces: (rootPath) => ipcRenderer.invoke('workspace:scan', rootPath),
 

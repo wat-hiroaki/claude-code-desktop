@@ -13,6 +13,7 @@ export interface Agent {
   name: string
   icon: string | null
   roleLabel: string | null
+  workspaceId: string | null
   projectPath: string
   projectName: string
   sessionNumber: number
@@ -69,6 +70,30 @@ export interface Broadcast {
   status: 'pending' | 'sent' | 'completed'
   responses: Record<string, string>
   createdAt: string
+}
+
+export interface Workspace {
+  id: string
+  name: string
+  color: string
+  connectionType: 'local' | 'ssh'
+  sshConfig?: {
+    host: string
+    port: number
+    username: string
+    privateKeyPath?: string
+  }
+  configStorageLocation: 'local' | 'remote'
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateWorkspaceParams {
+  name: string
+  color?: string
+  connectionType: 'local' | 'ssh'
+  sshConfig?: Workspace['sshConfig']
 }
 
 export interface CreateAgentParams {
@@ -154,6 +179,13 @@ export interface ElectronAPI {
 
   // Workspace scanner
   scanWorkspaces: (rootPath: string) => Promise<DiscoveredWorkspace[]>
+
+  // Workspaces
+  createWorkspace: (params: CreateWorkspaceParams) => Promise<Workspace>
+  getWorkspaces: () => Promise<Workspace[]>
+  updateWorkspace: (id: string, updates: Partial<Workspace>) => Promise<Workspace>
+  deleteWorkspace: (id: string) => Promise<void>
+  setActiveWorkspace: (id: string | null) => Promise<void>
 
   // PTY terminal
   ptyStart: (agentId: string) => Promise<void>
