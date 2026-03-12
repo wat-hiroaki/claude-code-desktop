@@ -160,7 +160,7 @@ export function SettingsModal({ onClose }: SettingsModalProps): JSX.Element {
           {/* Terminal Font Size */}
           <div>
             <div className="flex items-center justify-between text-sm font-medium mb-2">
-              <span>Font Size</span>
+              <span>{t('settings.fontSize', 'Font Size')}</span>
               <span className="text-xs text-muted-foreground font-mono">{terminalFontSize}px</span>
             </div>
             <div className="flex items-center gap-3">

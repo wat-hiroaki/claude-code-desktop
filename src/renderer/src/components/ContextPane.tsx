@@ -251,12 +251,12 @@ export function ContextPane(): JSX.Element {
         <div className="p-4 space-y-2">
           <div className="flex items-center gap-2 text-xs">
             <Clock size={14} className="text-muted-foreground" />
-            <span className="text-muted-foreground">Created:</span>
+            <span className="text-muted-foreground">{t('profile.created', 'Created')}:</span>
             <span>{new Date(agent.createdAt).toLocaleString()}</span>
           </div>
           <div className="flex items-center gap-2 text-xs">
             <Clock size={14} className="text-muted-foreground" />
-            <span className="text-muted-foreground">Updated:</span>
+            <span className="text-muted-foreground">{t('profile.updated', 'Updated')}:</span>
             <span>{new Date(agent.updatedAt).toLocaleString()}</span>
           </div>
         </div>

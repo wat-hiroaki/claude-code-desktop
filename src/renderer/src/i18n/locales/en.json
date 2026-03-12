@@ -146,7 +146,9 @@
     "noMemory": "No memory files",
     "noSkills": "No skills or commands",
     "noMcp": "No MCP servers configured",
-    "noHooks": "No hooks configured"
+    "noHooks": "No hooks configured",
+    "created": "Created",
+    "updated": "Updated"
   },
   "activity": {
     "title": "Activity Log",
@@ -214,7 +216,8 @@
     },
     "terminalMode": "Terminal Mode",
     "ptyMode": "PTY Terminal (xterm.js)",
-    "ptyModeDesc": "Real terminal output with full CLI experience. Disable to use legacy chat-style view."
+    "ptyModeDesc": "Real terminal output with full CLI experience. Disable to use legacy chat-style view.",
+    "fontSize": "Font Size"
   },
   "composer": {
     "placeholder": "Type a message... (Enter to send, Shift+Enter for newline)",

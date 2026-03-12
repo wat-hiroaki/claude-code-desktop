@@ -146,7 +146,9 @@
     "noMemory": "メモリファイルなし",
     "noSkills": "スキル・コマンドなし",
     "noMcp": "MCP サーバー未設定",
-    "noHooks": "フック未設定"
+    "noHooks": "フック未設定",
+    "created": "作成日時",
+    "updated": "更新日時"
   },
   "activity": {
     "title": "アクティビティログ",
@@ -214,7 +216,8 @@
     },
     "terminalMode": "ターミナルモード",
     "ptyMode": "PTYターミナル (xterm.js)",
-    "ptyModeDesc": "実際のターミナル出力でCLI体験をそのまま再現します。無効にするとレガシーチャット表示になります。"
+    "ptyModeDesc": "実際のターミナル出力でCLI体験をそのまま再現します。無効にするとレガシーチャット表示になります。",
+    "fontSize": "フォントサイズ"
   },
   "composer": {
     "placeholder": "メッセージを入力... (Enterで送信、Shift+Enterで改行)",
