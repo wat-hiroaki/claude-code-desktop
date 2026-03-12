@@ -288,6 +288,11 @@
     "stopFailed": "停止失敗: {{error}}",
     "interruptFailed": "中断失敗: {{error}}"
   },
+  "error": {
+    "somethingWrong": "問題が発生しました",
+    "unexpected": "予期せぬエラーが発生しました",
+    "tryAgain": "再試行"
+  },
   "browser": {
     "back": "戻る",
     "forward": "進む",

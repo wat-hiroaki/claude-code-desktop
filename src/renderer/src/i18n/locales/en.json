@@ -288,6 +288,11 @@
     "stopFailed": "Stop failed: {{error}}",
     "interruptFailed": "Interrupt failed: {{error}}"
   },
+  "error": {
+    "somethingWrong": "Something went wrong",
+    "unexpected": "An unexpected error occurred",
+    "tryAgain": "Try Again"
+  },
   "browser": {
     "back": "Back",
     "forward": "Forward",
