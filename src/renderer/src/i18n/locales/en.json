@@ -387,5 +387,15 @@
     "noResults": "No results found",
     "actions": "Actions",
     "agents": "Agents"
+  },
+  "tray": {
+    "status": "Active: {{active}} | Errors: {{error}}",
+    "showWindow": "Show Window",
+    "dashboard": "Dashboard",
+    "quit": "Quit"
+  },
+  "session": {
+    "conflictDetected": "Session conflict detected. Reconnecting with a new session...",
+    "conflictFailed": "This session is active in another terminal. Restart the agent to create a new session."
   }
 }

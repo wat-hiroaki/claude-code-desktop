@@ -8,6 +8,7 @@ import { ChainOrchestrator } from './chain-orchestrator'
 import { scanWorkspaces, scanRemoteWorkspaces } from './workspace-scanner'
 import { readAgentProfile, readFileContent } from './claude-config-reader'
 import { SshSessionManager } from './ssh-session-manager'
+import { initMainI18n, t } from './i18n'
 import type { CreateAgentParams } from '@shared/types'
 
 let mainWindow: BrowserWindow | null = null
@@ -139,16 +140,16 @@ function updateTrayMenu(): void {
   if (!tray) return
   const stats = database.getTeamStats()
   const contextMenu = Menu.buildFromTemplate([
-    { label: `Active: ${stats.active} | Errors: ${stats.error}`, enabled: false },
+    { label: t('tray.status').replace('{{active}}', String(stats.active)).replace('{{error}}', String(stats.error)), enabled: false },
     { type: 'separator' },
-    { label: 'Show Window', click: () => mainWindow?.show() },
-    { label: 'Dashboard', click: () => {
+    { label: t('tray.showWindow'), click: () => mainWindow?.show() },
+    { label: t('tray.dashboard'), click: () => {
       mainWindow?.show()
       mainWindow?.webContents.send('notification', 'Dashboard', 'Toggle dashboard from tray')
     }},
     { type: 'separator' },
     {
-      label: 'Quit',
+      label: t('tray.quit'),
       click: () => {
         app.isQuitting = true
         app.quit()
@@ -596,6 +597,7 @@ process.on('unhandledRejection', (reason) => {
 })
 
 app.whenReady().then(() => {
+  initMainI18n()
   electronApp.setAppUserModelId('dev.wat-hiroaki.claude-code-desktop')
 
   app.on('browser-window-created', (_, window) => {

@@ -4,6 +4,7 @@ import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import type { Agent, AgentStatus, MessageRole, ContentType } from '@shared/types'
 import type { Database } from './database'
+import { t } from './i18n'
 
 /**
  * Validates that projectPath is safe to use as a working directory for spawn.
@@ -150,7 +151,7 @@ export class SessionManager {
           this.onOutput(agent.id, {
             role: 'system',
             contentType: 'text',
-            content: 'Session conflict detected. Reconnecting with a new session...'
+            content: t('session.conflictDetected')
           })
           // Stop current process, generate new session ID, and restart
           this.stopSession(agent.id).then(() => {
@@ -175,7 +176,7 @@ export class SessionManager {
           this.onOutput(agent.id, {
             role: 'system',
             contentType: 'error',
-            content: 'This session is active in another terminal. Restart the agent to create a new session.'
+            content: t('session.conflictFailed')
           })
         }
       } else if (chunk.includes('Error') || chunk.includes('error')) {

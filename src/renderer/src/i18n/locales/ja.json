@@ -387,5 +387,15 @@
     "noResults": "結果が見つかりません",
     "actions": "アクション",
     "agents": "エージェント"
+  },
+  "tray": {
+    "status": "アクティブ: {{active}} | エラー: {{error}}",
+    "showWindow": "ウィンドウを表示",
+    "dashboard": "ダッシュボード",
+    "quit": "終了"
+  },
+  "session": {
+    "conflictDetected": "セッション競合を検出。新しいセッションで再接続中...",
+    "conflictFailed": "このセッションは別のターミナルで使用中です。エージェントを再起動して新しいセッションを作成してください。"
   }
 }
