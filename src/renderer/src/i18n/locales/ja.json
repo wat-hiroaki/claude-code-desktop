@@ -46,6 +46,8 @@
     "confirmArchive": "エージェント \"{{name}}\" をアーカイブしますか？",
     "importTemplate": "テンプレートからインポート",
     "namePlaceholder": "マイプロジェクト",
+    "sidebarLabel": "エージェントサイドバー",
+    "listLabel": "エージェント一覧",
     "noAgents": "エージェントがいません。作成して始めましょう！",
     "currentTask": "現在のタスク",
     "skills": "スキル",

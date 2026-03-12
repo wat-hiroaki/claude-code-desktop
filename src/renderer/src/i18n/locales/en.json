@@ -46,6 +46,8 @@
     "confirmArchive": "Archive agent \"{{name}}\"?",
     "importTemplate": "Import from template",
     "namePlaceholder": "My Project",
+    "sidebarLabel": "Agent sidebar",
+    "listLabel": "Agent list",
     "noAgents": "No agents yet. Create one to get started!",
     "currentTask": "Current task",
     "skills": "Skills",

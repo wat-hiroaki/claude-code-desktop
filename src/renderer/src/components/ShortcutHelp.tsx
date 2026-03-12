@@ -42,7 +42,7 @@ export function ShortcutHelp(): JSX.Element | null {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50" onClick={() => setIsOpen(false)}>
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50" onClick={() => setIsOpen(false)} role="dialog" aria-modal="true">
       <div
         className="bg-card border border-border rounded-xl w-[400px] shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
