@@ -192,7 +192,8 @@
     "changedFiles": "Changed Files",
     "noActivity": "No activity today",
     "exportMarkdown": "Copy as Markdown",
-    "copied": "Copied!"
+    "copied": "Copied!",
+    "moreActivities": "+{{count}} more..."
   },
   "settings": {
     "title": "Settings",

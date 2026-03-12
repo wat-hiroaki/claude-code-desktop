@@ -192,7 +192,8 @@
     "changedFiles": "変更ファイル",
     "noActivity": "本日のアクティビティはありません",
     "exportMarkdown": "Markdownでコピー",
-    "copied": "コピーしました！"
+    "copied": "コピーしました！",
+    "moreActivities": "+{{count}}件..."
   },
   "settings": {
     "title": "設定",

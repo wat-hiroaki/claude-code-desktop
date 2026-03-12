@@ -354,7 +354,7 @@ export function DailyReport({ onClose }: DailyReportProps): JSX.Element {
                               ))}
                               {summary.activities.length > 5 && (
                                 <li className="text-[10px] text-muted-foreground pl-2 italic">
-                                  +{summary.activities.length - 5} more...
+                                  {t('dailyReport.moreActivities', '+{{count}} more...', { count: summary.activities.length - 5 })}
                                 </li>
                               )}
                             </ul>
