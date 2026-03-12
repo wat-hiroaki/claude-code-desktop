@@ -74,7 +74,8 @@
     "placeholder": "メッセージを入力...（Enterで送信、Shift+Enterで改行）",
     "send": "送信",
     "selectAgent": "エージェントを選択して会話を始めましょう",
-    "noMessages": "メッセージはまだありません。話しかけてみましょう！"
+    "noMessages": "メッセージはまだありません。話しかけてみましょう！",
+    "toolExecution": "ツール実行"
   },
   "dashboard": {
     "title": "チームダッシュボード",

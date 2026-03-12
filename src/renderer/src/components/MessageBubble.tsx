@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { Message } from '@shared/types'
 import { cn } from '../lib/utils'
 import { ChevronDown, ChevronRight, AlertCircle, Terminal } from 'lucide-react'
@@ -7,7 +8,8 @@ interface MessageBubbleProps {
   message: Message
 }
 
-export function MessageBubble({ message }: MessageBubbleProps): JSX.Element {
+function MessageBubbleInner({ message }: MessageBubbleProps): JSX.Element {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
   const isManager = message.role === 'manager'
   const isSystem = message.role === 'system'
@@ -41,7 +43,7 @@ export function MessageBubble({ message }: MessageBubbleProps): JSX.Element {
   // Tool execution — collapsible block
   if (isTool || isToolExec) {
     const lines = message.content.split('\n')
-    const header = lines[0] || 'Tool execution'
+    const header = lines[0] || t('chat.toolExecution', 'Tool execution')
     const body = lines.slice(1).join('\n')
     const isLong = body.length > 200
 
@@ -112,3 +114,5 @@ export function MessageBubble({ message }: MessageBubbleProps): JSX.Element {
     </div>
   )
 }
+
+export const MessageBubble = memo(MessageBubbleInner)

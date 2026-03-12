@@ -74,7 +74,8 @@
     "placeholder": "Type a message... (Enter to send, Shift+Enter for new line)",
     "send": "Send",
     "selectAgent": "Select an agent to start chatting",
-    "noMessages": "No messages yet. Say something!"
+    "noMessages": "No messages yet. Say something!",
+    "toolExecution": "Tool execution"
   },
   "dashboard": {
     "title": "Team Dashboard",
