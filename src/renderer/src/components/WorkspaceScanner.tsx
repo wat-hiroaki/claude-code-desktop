@@ -102,7 +102,7 @@ export function WorkspaceScanner({ onClose, onCreateAgent }: WorkspaceScannerPro
             <button
               onClick={handleSelectRoot}
               className="px-3 py-2 bg-secondary rounded-lg hover:bg-accent transition-colors"
-              title="Browse..."
+              title={t('common.browse', 'Browse...')}
             >
               <FolderOpen size={16} />
             </button>

@@ -44,6 +44,8 @@
     },
     "listTitle": "エージェント",
     "confirmArchive": "エージェント \"{{name}}\" をアーカイブしますか？",
+    "importTemplate": "テンプレートからインポート",
+    "namePlaceholder": "マイプロジェクト",
     "noAgents": "エージェントがいません。作成して始めましょう！",
     "currentTask": "現在のタスク",
     "skills": "スキル",
@@ -132,7 +134,13 @@
     "memory": "メモリ",
     "skills": "スキル & コマンド",
     "mcp": "MCP サーバー",
-    "hooks": "ガードレール & フック"
+    "hooks": "ガードレール & フック",
+    "loadError": "プロファイルの読み込みに失敗しました",
+    "noRules": "CLAUDE.md ファイルが見つかりません",
+    "noMemory": "メモリファイルなし",
+    "noSkills": "スキル・コマンドなし",
+    "noMcp": "MCP サーバー未設定",
+    "noHooks": "フック未設定"
   },
   "activity": {
     "title": "アクティビティログ",
@@ -260,7 +268,10 @@
     "approve": "承認",
     "reject": "拒否",
     "noResults": "\"{{query}}\" — 結果なし",
-    "ok": "OK"
+    "ok": "OK",
+    "edit": "編集",
+    "browse": "参照...",
+    "view": "表示"
   },
   "toast": {
     "agentRestarted": "エージェントが再起動されました",
@@ -276,6 +287,14 @@
     "restartFailed": "再起動失敗: {{error}}",
     "stopFailed": "停止失敗: {{error}}",
     "interruptFailed": "中断失敗: {{error}}"
+  },
+  "browser": {
+    "back": "戻る",
+    "forward": "進む",
+    "stop": "停止",
+    "reload": "再読み込み",
+    "placeholder": "URLまたは検索...",
+    "openExternal": "外部ブラウザで開く"
   },
   "shortcuts": {
     "title": "キーボードショートカット",

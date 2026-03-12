@@ -110,7 +110,7 @@ export function CreateAgentDialog({ onClose, prefill }: CreateAgentDialogProps):
                 }
               }}
               className="flex items-center gap-1 px-2 py-1 text-xs rounded hover:bg-accent text-muted-foreground transition-colors"
-              title="Import from template"
+              title={t('agent.importTemplate', 'Import from template')}
             >
               <Upload size={12} />
               Template
@@ -161,7 +161,7 @@ export function CreateAgentDialog({ onClose, prefill }: CreateAgentDialogProps):
               <button
                 onClick={handleSelectFolder}
                 className="px-3 py-2 bg-secondary rounded-lg hover:bg-accent transition-colors"
-                title="Browse..."
+                title={t('common.browse', 'Browse...')}
               >
                 <FolderOpen size={16} />
               </button>
@@ -174,7 +174,7 @@ export function CreateAgentDialog({ onClose, prefill }: CreateAgentDialogProps):
               type="text"
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
-              placeholder="My Project"
+              placeholder={t('agent.namePlaceholder', 'My Project')}
               className="w-full mt-1 px-3 py-2 bg-secondary rounded-lg text-sm outline-none"
             />
           </div>

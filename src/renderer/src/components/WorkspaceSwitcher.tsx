@@ -199,14 +199,14 @@ export function WorkspaceSwitcher({ className }: WorkspaceSwitcherProps): JSX.El
                         <button
                           onClick={(e) => handleStartEdit(ws, e)}
                           className="p-1 rounded hover:bg-accent text-muted-foreground"
-                          title="Edit"
+                          title={t('common.edit', 'Edit')}
                         >
                           <Pencil size={11} />
                         </button>
                         <button
                           onClick={(e) => handleDelete(ws, e)}
                           className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-red-400"
-                          title="Delete"
+                          title={t('common.delete', 'Delete')}
                         >
                           <Trash2 size={11} />
                         </button>

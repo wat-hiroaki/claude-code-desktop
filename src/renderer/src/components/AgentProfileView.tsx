@@ -42,6 +42,7 @@ function SectionHeader({
 }
 
 function RuleItem({ rule, onView }: { rule: ClaudeRuleFile; onView: (path: string) => void }): JSX.Element {
+  const { t } = useTranslation()
   return (
     <div className="flex items-center gap-2 px-4 py-1.5 hover:bg-muted/20 transition-colors group">
       <div className={cn(
@@ -57,7 +58,7 @@ function RuleItem({ rule, onView }: { rule: ClaudeRuleFile; onView: (path: strin
       <button
         onClick={() => onView(rule.path)}
         className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-muted/50 text-muted-foreground transition-all"
-        title="View"
+        title={t('common.view', 'View')}
       >
         <Eye size={10} />
       </button>
@@ -123,7 +124,7 @@ export function AgentProfileView({ agentId, agentName, onClose }: AgentProfileVi
   if (error || !profile) {
     return (
       <div className="flex h-full items-center justify-center text-red-400/50">
-        <span className="text-xs">{error || 'Failed to load profile'}</span>
+        <span className="text-xs">{error || t('profile.loadError', 'Failed to load profile')}</span>
       </div>
     )
   }
@@ -171,7 +172,7 @@ export function AgentProfileView({ agentId, agentName, onClose }: AgentProfileVi
         {expanded.rules && (
           <div className="pb-1">
             {profile.rules.length === 0 ? (
-              <p className="px-4 py-1 text-[10px] text-muted-foreground/50">No CLAUDE.md files found</p>
+              <p className="px-4 py-1 text-[10px] text-muted-foreground/50">{t('profile.noRules', 'No CLAUDE.md files found')}</p>
             ) : (
               profile.rules.map((rule) => (
                 <RuleItem key={rule.path} rule={rule} onView={handleViewFile} />
@@ -191,7 +192,7 @@ export function AgentProfileView({ agentId, agentName, onClose }: AgentProfileVi
         {expanded.memory && (
           <div className="pb-1">
             {profile.memory.length === 0 ? (
-              <p className="px-4 py-1 text-[10px] text-muted-foreground/50">No memory files</p>
+              <p className="px-4 py-1 text-[10px] text-muted-foreground/50">{t('profile.noMemory', 'No memory files')}</p>
             ) : (
               profile.memory.map((mem) => (
                 <div key={mem.file} className="flex items-center gap-2 px-4 py-1.5 hover:bg-muted/20">
@@ -219,7 +220,7 @@ export function AgentProfileView({ agentId, agentName, onClose }: AgentProfileVi
         {expanded.skills && (
           <div className="pb-1">
             {profile.skills.length === 0 ? (
-              <p className="px-4 py-1 text-[10px] text-muted-foreground/50">No skills or commands</p>
+              <p className="px-4 py-1 text-[10px] text-muted-foreground/50">{t('profile.noSkills', 'No skills or commands')}</p>
             ) : (
               profile.skills.map((skill) => (
                 <SkillItem key={skill.path} skill={skill} />
@@ -239,7 +240,7 @@ export function AgentProfileView({ agentId, agentName, onClose }: AgentProfileVi
         {expanded.mcp && (
           <div className="pb-1">
             {profile.mcpServers.length === 0 ? (
-              <p className="px-4 py-1 text-[10px] text-muted-foreground/50">No MCP servers configured</p>
+              <p className="px-4 py-1 text-[10px] text-muted-foreground/50">{t('profile.noMcp', 'No MCP servers configured')}</p>
             ) : (
               profile.mcpServers.map((server) => (
                 <div key={server.name} className="flex items-center gap-2 px-4 py-1.5 hover:bg-muted/20">
@@ -268,7 +269,7 @@ export function AgentProfileView({ agentId, agentName, onClose }: AgentProfileVi
         {expanded.hooks && (
           <div className="pb-1">
             {profile.hooks.length === 0 ? (
-              <p className="px-4 py-1 text-[10px] text-muted-foreground/50">No hooks configured</p>
+              <p className="px-4 py-1 text-[10px] text-muted-foreground/50">{t('profile.noHooks', 'No hooks configured')}</p>
             ) : (
               profile.hooks.map((hook, i) => (
                 <div key={i} className="flex items-center gap-2 px-4 py-1.5 hover:bg-muted/20">

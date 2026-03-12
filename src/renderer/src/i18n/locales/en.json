@@ -44,6 +44,8 @@
     },
     "listTitle": "Agents",
     "confirmArchive": "Archive agent \"{{name}}\"?",
+    "importTemplate": "Import from template",
+    "namePlaceholder": "My Project",
     "noAgents": "No agents yet. Create one to get started!",
     "currentTask": "Current task",
     "skills": "Skills",
@@ -132,7 +134,13 @@
     "memory": "Memory",
     "skills": "Skills & Commands",
     "mcp": "MCP Servers",
-    "hooks": "Guardrails & Hooks"
+    "hooks": "Guardrails & Hooks",
+    "loadError": "Failed to load profile",
+    "noRules": "No CLAUDE.md files found",
+    "noMemory": "No memory files",
+    "noSkills": "No skills or commands",
+    "noMcp": "No MCP servers configured",
+    "noHooks": "No hooks configured"
   },
   "activity": {
     "title": "Activity Log",
@@ -260,7 +268,10 @@
     "approve": "Approve",
     "reject": "Reject",
     "noResults": "\"{{query}}\" — no results",
-    "ok": "OK"
+    "ok": "OK",
+    "edit": "Edit",
+    "browse": "Browse...",
+    "view": "View"
   },
   "toast": {
     "agentRestarted": "Agent restarted",
@@ -276,6 +287,14 @@
     "restartFailed": "Restart failed: {{error}}",
     "stopFailed": "Stop failed: {{error}}",
     "interruptFailed": "Interrupt failed: {{error}}"
+  },
+  "browser": {
+    "back": "Back",
+    "forward": "Forward",
+    "stop": "Stop",
+    "reload": "Reload",
+    "placeholder": "Enter URL or search...",
+    "openExternal": "Open in external browser"
   },
   "shortcuts": {
     "title": "Keyboard Shortcuts",

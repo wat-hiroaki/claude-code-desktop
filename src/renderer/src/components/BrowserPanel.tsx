@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ArrowLeft, ArrowRight, RotateCw, Globe, ExternalLink } from 'lucide-react'
 
 export function BrowserPanel(): JSX.Element {
+  const { t } = useTranslation()
   const [url, setUrl] = useState('https://www.google.com')
   const [inputUrl, setInputUrl] = useState('https://www.google.com')
   const [title, setTitle] = useState('')
@@ -71,7 +73,7 @@ export function BrowserPanel(): JSX.Element {
           onClick={() => (webviewRef.current as any)?.goBack()}
           disabled={!canGoBack}
           className="p-1 rounded hover:bg-accent disabled:opacity-30 transition-colors"
-          title="Back"
+          title={t('browser.back', 'Back')}
         >
           <ArrowLeft size={14} />
         </button>
@@ -79,7 +81,7 @@ export function BrowserPanel(): JSX.Element {
           onClick={() => (webviewRef.current as any)?.goForward()}
           disabled={!canGoForward}
           className="p-1 rounded hover:bg-accent disabled:opacity-30 transition-colors"
-          title="Forward"
+          title={t('browser.forward', 'Forward')}
         >
           <ArrowRight size={14} />
         </button>
@@ -93,7 +95,7 @@ export function BrowserPanel(): JSX.Element {
             }
           }}
           className="p-1 rounded hover:bg-accent transition-colors"
-          title={isLoading ? 'Stop' : 'Reload'}
+          title={isLoading ? t('browser.stop', 'Stop') : t('browser.reload', 'Reload')}
         >
           <RotateCw size={14} className={isLoading ? 'animate-spin' : ''} />
         </button>
@@ -105,7 +107,7 @@ export function BrowserPanel(): JSX.Element {
             onChange={(e) => setInputUrl(e.target.value)}
             onKeyDown={handleKeyDown}
             className="flex-1 bg-transparent text-xs outline-none text-foreground placeholder:text-muted-foreground"
-            placeholder="Enter URL or search..."
+            placeholder={t('browser.placeholder', 'Enter URL or search...')}
           />
         </div>
         <button
@@ -116,7 +118,7 @@ export function BrowserPanel(): JSX.Element {
             }
           }}
           className="p-1 rounded hover:bg-accent transition-colors"
-          title="Open in external browser"
+          title={t('browser.openExternal', 'Open in external browser')}
         >
           <ExternalLink size={14} />
         </button>
