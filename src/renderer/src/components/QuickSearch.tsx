@@ -27,10 +27,10 @@ export function QuickSearch(): JSX.Element | null {
   // Build combined list: actions + agents
   const allItems = useMemo((): CommandItem[] => {
     const actions: CommandItem[] = [
-      { type: 'action', id: 'new-agent', label: 'New Agent', description: 'Ctrl+N', icon: <Plus size={14} />, action: () => { document.dispatchEvent(new CustomEvent('app:new-agent')) } },
-      { type: 'action', id: 'dashboard', label: 'Toggle Dashboard', description: 'Ctrl+D', icon: <LayoutDashboard size={14} />, action: toggleDashboard },
-      { type: 'action', id: 'broadcast', label: 'Broadcast', description: 'Ctrl+Shift+B', icon: <Radio size={14} />, action: toggleBroadcast },
-      { type: 'action', id: 'right-pane', label: 'Toggle Right Pane', description: 'Ctrl+Shift+P', icon: <PanelRight size={14} />, action: toggleRightPane }
+      { type: 'action', id: 'new-agent', label: t('shortcuts.newAgent', 'New Agent'), description: 'Ctrl+N', icon: <Plus size={14} />, action: () => { document.dispatchEvent(new CustomEvent('app:new-agent')) } },
+      { type: 'action', id: 'dashboard', label: t('shortcuts.toggleDashboard', 'Toggle Dashboard'), description: 'Ctrl+D', icon: <LayoutDashboard size={14} />, action: toggleDashboard },
+      { type: 'action', id: 'broadcast', label: t('shortcuts.broadcast', 'Broadcast'), description: 'Ctrl+Shift+B', icon: <Radio size={14} />, action: toggleBroadcast },
+      { type: 'action', id: 'right-pane', label: t('shortcuts.toggleRightPane', 'Toggle Right Pane'), description: 'Ctrl+Shift+P', icon: <PanelRight size={14} />, action: toggleRightPane }
     ]
     const agentItems: CommandItem[] = agents
       .filter((a) => a.status !== 'archived')
@@ -105,7 +105,7 @@ export function QuickSearch(): JSX.Element | null {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center pt-[15vh] bg-black/50" onClick={() => setIsOpen(false)}>
+    <div className="fixed inset-0 z-[60] flex items-start justify-center pt-[15vh] bg-black/50" onClick={() => setIsOpen(false)} role="dialog" aria-modal="true">
       <div
         className="bg-card border border-border rounded-xl w-[480px] shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
@@ -119,7 +119,7 @@ export function QuickSearch(): JSX.Element | null {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={`${t('common.search')} agents and actions...`}
+            placeholder={t('quickSearch.placeholder', 'Search agents and actions...')}
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
           <kbd className="text-[10px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">ESC</kbd>
@@ -129,14 +129,14 @@ export function QuickSearch(): JSX.Element | null {
         <div className="max-h-[300px] overflow-y-auto">
           {filtered.length === 0 ? (
             <div className="p-4 text-sm text-muted-foreground text-center">
-              No results found
+              {t('quickSearch.noResults', 'No results found')}
             </div>
           ) : (
             <>
               {/* Actions section */}
               {filtered.some((i) => i.type === 'action') && (
                 <div className="px-3 pt-2 pb-1">
-                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Actions</span>
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t('quickSearch.actions', 'Actions')}</span>
                 </div>
               )}
               {filtered.filter((i) => i.type === 'action').map((item) => {
@@ -167,7 +167,7 @@ export function QuickSearch(): JSX.Element | null {
               {/* Agents section */}
               {filtered.some((i) => i.type === 'agent') && (
                 <div className="px-3 pt-2 pb-1">
-                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Agents</span>
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t('quickSearch.agents', 'Agents')}</span>
                 </div>
               )}
               {filtered.filter((i) => i.type === 'agent').map((item) => {

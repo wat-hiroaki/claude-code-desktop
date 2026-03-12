@@ -345,5 +345,11 @@
       "subAgent": "サブエージェント起動",
       "tool": "ツール"
     }
+  },
+  "quickSearch": {
+    "placeholder": "エージェントとアクションを検索...",
+    "noResults": "結果が見つかりません",
+    "actions": "アクション",
+    "agents": "エージェント"
   }
 }

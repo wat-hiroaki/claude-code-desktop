@@ -345,5 +345,11 @@
       "subAgent": "Spawning sub-agent",
       "tool": "Tool"
     }
+  },
+  "quickSearch": {
+    "placeholder": "Search agents and actions...",
+    "noResults": "No results found",
+    "actions": "Actions",
+    "agents": "Agents"
   }
 }
