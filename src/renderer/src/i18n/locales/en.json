@@ -261,8 +261,18 @@
   },
   "toast": {
     "agentRestarted": "Agent restarted",
+    "agentCreated": "Agent \"{{name}}\" created",
     "sendFailed": "Send Failed",
-    "sendFailedDetail": "Failed to send"
+    "sendFailedDetail": "Failed to send",
+    "workspaceCreated": "Workspace \"{{name}}\" created",
+    "workspaceDeleted": "Workspace \"{{name}}\" deleted",
+    "templateLoaded": "Template \"{{name}}\" loaded",
+    "templateExported": "Template exported to {{path}}",
+    "backupSaved": "Backup saved to {{path}}",
+    "dataLocation": "Data: {{path}}",
+    "restartFailed": "Restart failed: {{error}}",
+    "stopFailed": "Stop failed: {{error}}",
+    "interruptFailed": "Interrupt failed: {{error}}"
   },
   "terminal": {
     "noAgent": "No agent selected",

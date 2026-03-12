@@ -89,7 +89,7 @@ export function WorkspaceSwitcher({ className }: WorkspaceSwitcherProps): JSX.El
         setActiveWorkspaceId(null)
       }
       await loadWorkspaces()
-      showToast(`Workspace "${ws.name}" deleted`, 'success')
+      showToast(t('toast.workspaceDeleted', 'Workspace "{{name}}" deleted', { name: ws.name }), 'success')
     } catch (err) {
       showToast(err instanceof Error ? err.message : String(err), 'error')
     }

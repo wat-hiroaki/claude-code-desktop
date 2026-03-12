@@ -103,7 +103,7 @@ export function CreateAgentDialog({ onClose, prefill }: CreateAgentDialogProps):
                     setRoleLabel(template.roleLabel ?? '')
                     setSystemPrompt(template.systemPrompt ?? '')
                     setSkillsInput(template.skills.join(', '))
-                    showToast(`Template "${template.name}" loaded`, 'success')
+                    showToast(t('toast.templateLoaded', 'Template "{{name}}" loaded', { name: template.name }), 'success')
                   }
                 } catch (err) {
                   showToast(err instanceof Error ? err.message : String(err), 'error')

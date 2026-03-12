@@ -215,7 +215,7 @@ export function SettingsModal({ onClose }: SettingsModalProps): JSX.Element {
                 onClick={async () => {
                   try {
                     const path = await window.api.exportDatabase()
-                    if (path) showToast(`Backup saved to ${path}`, 'success')
+                    if (path) showToast(t('toast.backupSaved', 'Backup saved to {{path}}', { path }), 'success')
                   } catch (err) {
                     showToast(err instanceof Error ? err.message : String(err), 'error')
                   }
@@ -229,7 +229,7 @@ export function SettingsModal({ onClose }: SettingsModalProps): JSX.Element {
                   const dbPath = await window.api.getDatabasePath()
                   const parts = dbPath.replace(/\\/g, '/').split('/')
                   parts.pop()
-                  showToast(`Data: ${parts.join('/')}`, 'info')
+                  showToast(t('toast.dataLocation', 'Data: {{path}}', { path: parts.join('/') }), 'info')
                 }}
                 className="flex items-center gap-1 py-2 px-3 rounded-lg text-sm border border-border hover:bg-accent transition-colors"
               >

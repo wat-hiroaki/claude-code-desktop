@@ -227,7 +227,7 @@ export function AgentList(): JSX.Element {
       })
       useAppStore.getState().addAgent(newAgent)
       setSelectedAgent(newAgent.id)
-      showToast(`Agent "${newAgent.name}" created`, 'success')
+      showToast(t('toast.agentCreated', 'Agent "{{name}}" created', { name: newAgent.name }), 'success')
     } catch (err) {
       showToast(err instanceof Error ? err.message : String(err), 'error')
     }
@@ -237,7 +237,7 @@ export function AgentList(): JSX.Element {
     setContextMenu(null)
     try {
       const path = await window.api.exportAgentTemplate(agentId)
-      if (path) showToast(`Template exported to ${path}`, 'success')
+      if (path) showToast(t('toast.templateExported', 'Template exported to {{path}}', { path }), 'success')
     } catch (err) {
       showToast(err instanceof Error ? err.message : String(err), 'error')
     }

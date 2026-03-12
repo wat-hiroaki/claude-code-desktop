@@ -261,8 +261,18 @@
   },
   "toast": {
     "agentRestarted": "エージェントが再起動されました",
+    "agentCreated": "エージェント \"{{name}}\" を作成しました",
     "sendFailed": "送信失敗",
-    "sendFailedDetail": "メッセージを送信できませんでした"
+    "sendFailedDetail": "メッセージを送信できませんでした",
+    "workspaceCreated": "ワークスペース \"{{name}}\" を作成しました",
+    "workspaceDeleted": "ワークスペース \"{{name}}\" を削除しました",
+    "templateLoaded": "テンプレート \"{{name}}\" を読み込みました",
+    "templateExported": "テンプレートを {{path}} にエクスポートしました",
+    "backupSaved": "バックアップを {{path}} に保存しました",
+    "dataLocation": "データ: {{path}}",
+    "restartFailed": "再起動失敗: {{error}}",
+    "stopFailed": "停止失敗: {{error}}",
+    "interruptFailed": "中断失敗: {{error}}"
   },
   "terminal": {
     "noAgent": "エージェントが選択されていません",

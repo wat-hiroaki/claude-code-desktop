@@ -24,7 +24,7 @@ function AgentHeader({ agent, compact, workspace }: { agent: Agent; compact: boo
       await window.api.ptyStart(agent.id)
       showToast(t('toast.agentRestarted', 'Agent restarted'), 'success')
     } catch (err) {
-      showToast(`Restart failed: ${err instanceof Error ? err.message : String(err)}`, 'error')
+      showToast(t('toast.restartFailed', 'Restart failed: {{error}}', { error: err instanceof Error ? err.message : String(err) }), 'error')
     }
   }, [agent.id, t])
 
@@ -32,7 +32,7 @@ function AgentHeader({ agent, compact, workspace }: { agent: Agent; compact: boo
     try {
       await window.api.ptyStop(agent.id)
     } catch (err) {
-      showToast(`Stop failed: ${err instanceof Error ? err.message : String(err)}`, 'error')
+      showToast(t('toast.stopFailed', 'Stop failed: {{error}}', { error: err instanceof Error ? err.message : String(err) }), 'error')
     }
   }, [agent.id])
 
@@ -40,7 +40,7 @@ function AgentHeader({ agent, compact, workspace }: { agent: Agent; compact: boo
     try {
       await window.api.ptyInterrupt(agent.id)
     } catch (err) {
-      showToast(`Interrupt failed: ${err instanceof Error ? err.message : String(err)}`, 'error')
+      showToast(t('toast.interruptFailed', 'Interrupt failed: {{error}}', { error: err instanceof Error ? err.message : String(err) }), 'error')
     }
   }, [agent.id])
 
@@ -173,7 +173,7 @@ export function PtyTerminalView({ agentId, compact = false }: PtyTerminalViewPro
     try {
       await window.api.ptyStart(agentId)
     } catch (err) {
-      showToast(`Failed to restart: ${err instanceof Error ? err.message : String(err)}`, 'error')
+      showToast(t('toast.restartFailed', 'Failed to restart: {{error}}', { error: err instanceof Error ? err.message : String(err) }), 'error')
     }
   }, [agentId])
 

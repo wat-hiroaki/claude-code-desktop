@@ -74,7 +74,7 @@ export function CreateWorkspaceDialog({ onClose }: CreateWorkspaceDialogProps): 
       })
       await window.api.setActiveWorkspace(ws.id)
       setActiveWorkspaceId(ws.id)
-      showToast(`Workspace "${ws.name}" created`, 'success')
+      showToast(t('toast.workspaceCreated', 'Workspace "{{name}}" created', { name: ws.name }), 'success')
       onClose()
     } catch (err) {
       showToast(err instanceof Error ? err.message : String(err), 'error')
