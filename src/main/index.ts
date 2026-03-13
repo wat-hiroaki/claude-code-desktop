@@ -684,10 +684,30 @@ app.whenReady().then(() => {
   initMainI18n()
   electronApp.setAppUserModelId('dev.wat-hiroaki.claude-code-desktop')
 
-  // 自動アップデート確認
+  // 自動アップデート
   if (!is.dev) {
-    autoUpdater.checkForUpdatesAndNotify()
+    autoUpdater.autoDownload = true
+    autoUpdater.autoInstallOnAppQuit = true
+
+    autoUpdater.on('update-available', (info) => {
+      mainWindow?.webContents.send('update:available', info.version ?? '')
+    })
+
+    autoUpdater.on('download-progress', (progress) => {
+      mainWindow?.webContents.send('update:progress', Math.round(progress.percent))
+    })
+
+    autoUpdater.on('update-downloaded', (info) => {
+      mainWindow?.webContents.send('update:downloaded', info.version ?? '')
+    })
+
+    autoUpdater.checkForUpdates()
   }
+
+  // IPC: ユーザーが「今すぐ更新」を押した時
+  ipcMain.handle('update:install', () => {
+    autoUpdater.quitAndInstall(false, true)
+  })
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

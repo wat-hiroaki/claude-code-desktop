@@ -303,4 +303,10 @@ export interface ElectronAPI {
   getAppVersion: () => Promise<string>
   getPlatform: () => string
   setTitleBarTheme: (isDark: boolean) => Promise<void>
+
+  // Update
+  onUpdateAvailable: (callback: (version: string) => void) => () => void
+  onUpdateProgress: (callback: (percent: number) => void) => () => void
+  onUpdateDownloaded: (callback: (version: string) => void) => () => void
+  installUpdate: () => Promise<void>
 }

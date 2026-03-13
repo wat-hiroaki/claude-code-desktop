@@ -430,5 +430,11 @@
     "noSessionsHint": "`claude` CLIのセッションがここに表示されます",
     "currentProject": "このプロジェクト",
     "hint": "ヒント: 競合を避けるため、先に他のターミナルでセッションを終了してください"
+  },
+  "update": {
+    "available": "v{{version}} のアップデートがあります。ダウンロード中...",
+    "downloading": "アップデートをダウンロード中... {{progress}}%",
+    "ready": "v{{version}} のインストール準備ができました",
+    "installNow": "再起動して更新"
   }
 }

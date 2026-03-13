@@ -17,6 +17,7 @@ import { WelcomeScreen } from './components/WelcomeScreen'
 import { WorkspaceScanner } from './components/WorkspaceScanner'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ResizeHandle } from './components/ResizeHandle'
+import { UpdateBanner } from './components/UpdateBanner'
 
 import type { DiscoveredWorkspace } from '@shared/types'
 
@@ -343,6 +344,7 @@ export function App(): JSX.Element {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <TitleBar />
+      <UpdateBanner />
 
       {showDashboard && (
         <ErrorBoundary fallbackMessage="Dashboard failed to render">

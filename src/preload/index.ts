@@ -122,7 +122,25 @@ const api: ElectronAPI = {
   // App
   getAppVersion: () => ipcRenderer.invoke('app:version'),
   getPlatform: () => process.platform,
-  setTitleBarTheme: (isDark: boolean) => ipcRenderer.invoke('app:titlebar-theme', isDark)
+  setTitleBarTheme: (isDark: boolean) => ipcRenderer.invoke('app:titlebar-theme', isDark),
+
+  // Update
+  onUpdateAvailable: (callback: (version: string) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, version: string): void => { callback(version) }
+    ipcRenderer.on('update:available', handler)
+    return () => ipcRenderer.removeListener('update:available', handler)
+  },
+  onUpdateProgress: (callback: (percent: number) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, percent: number): void => { callback(percent) }
+    ipcRenderer.on('update:progress', handler)
+    return () => ipcRenderer.removeListener('update:progress', handler)
+  },
+  onUpdateDownloaded: (callback: (version: string) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, version: string): void => { callback(version) }
+    ipcRenderer.on('update:downloaded', handler)
+    return () => ipcRenderer.removeListener('update:downloaded', handler)
+  },
+  installUpdate: () => ipcRenderer.invoke('update:install')
 }
 
 contextBridge.exposeInMainWorld('api', api)

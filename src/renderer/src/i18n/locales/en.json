@@ -430,5 +430,11 @@
     "noSessionsHint": "Sessions from `claude` CLI will appear here",
     "currentProject": "This project",
     "hint": "Tip: Close the session in the other terminal first to avoid conflicts"
+  },
+  "update": {
+    "available": "Update v{{version}} is available. Downloading...",
+    "downloading": "Downloading update... {{progress}}%",
+    "ready": "v{{version}} is ready to install",
+    "installNow": "Restart & Update"
   }
 }
