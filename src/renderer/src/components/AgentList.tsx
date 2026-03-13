@@ -51,6 +51,7 @@ export function AgentList(): JSX.Element {
   const [createForProject, setCreateForProject] = useState<string | null>(null)
   const [inboxExpanded, setInboxExpanded] = useState(false)
   const [sortBy, setSortBy] = useState<'name' | 'status' | 'updated'>('updated')
+  const [appVersion, setAppVersion] = useState('')
   const [collapsedProjects, setCollapsedProjects] = useState<Set<string>>(() => {
     try {
       const saved = localStorage.getItem('collapsedProjects')
@@ -62,6 +63,11 @@ export function AgentList(): JSX.Element {
   const [contextMenu, setContextMenu] = useState<{ agentId: string; x: number; y: number } | null>(null)
   const contextMenuRef = useRef<HTMLDivElement>(null)
   const [workspaceColors, setWorkspaceColors] = useState<Record<string, string>>({})
+
+  // Load app version
+  useEffect(() => {
+    window.api.getAppVersion().then(setAppVersion).catch(() => {})
+  }, [])
 
   // Load workspace colors for the "All Agents" view
   useEffect(() => {
@@ -576,6 +582,13 @@ export function AgentList(): JSX.Element {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Version info */}
+      {appVersion && (
+        <div className="px-3 py-1.5 border-t border-border/30 text-[10px] text-muted-foreground/40">
+          v{appVersion}
         </div>
       )}
 

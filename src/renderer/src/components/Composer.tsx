@@ -65,8 +65,13 @@ export function Composer({ agentId, disabled = false, className }: ComposerProps
     setHistoryIndex(-1)
     savedDraft.current = ''
 
-    // Send to PTY stdin with carriage return (same as pressing Enter in terminal)
-    window.api.ptyWrite(agentId, trimmed + '\r')
+    // Send text to PTY, then send carriage return separately after a short delay.
+    // Sending them together in a single write can cause Claude CLI's readline
+    // to not process the \r as an Enter keystroke.
+    window.api.ptyWrite(agentId, trimmed)
+    setTimeout(() => {
+      window.api.ptyWrite(agentId, '\r')
+    }, 50)
     setValue('')
 
     // Reset textarea height
