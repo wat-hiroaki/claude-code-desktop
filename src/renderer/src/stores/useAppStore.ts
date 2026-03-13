@@ -21,10 +21,8 @@ interface AppState {
   setTeamStats: (stats: TeamStats) => void
 
   // UI state
-  showDashboard: boolean
   showRightPane: boolean
   showBroadcast: boolean
-  toggleDashboard: () => void
   toggleRightPane: () => void
   toggleBroadcast: () => void
 
@@ -83,10 +81,8 @@ export const useAppStore = create<AppState>((set) => ({
   setTeamStats: (stats) => set({ teamStats: stats }),
 
   // UI state
-  showDashboard: false,
   showRightPane: false,
   showBroadcast: false,
-  toggleDashboard: () => set((s) => ({ showDashboard: !s.showDashboard })),
   toggleRightPane: () => set((s) => ({ showRightPane: !s.showRightPane })),
   toggleBroadcast: () => set((s) => ({ showBroadcast: !s.showBroadcast })),
 

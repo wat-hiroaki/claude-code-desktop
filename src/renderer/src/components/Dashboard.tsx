@@ -18,11 +18,12 @@ type DashboardView = 'orgChart' | 'skillMap' | 'kanban' | 'activityMap'
 
 interface DashboardProps {
   onOpenScanner?: () => void
+  fullHeight?: boolean
 }
 
-export function Dashboard({ onOpenScanner }: DashboardProps): JSX.Element {
+export function Dashboard({ onOpenScanner, fullHeight }: DashboardProps): JSX.Element {
   const { t } = useTranslation()
-  const { teamStats, setSelectedAgent, toggleDashboard } = useAppStore()
+  const { teamStats, setSelectedAgent } = useAppStore()
   const [showDailyReport, setShowDailyReport] = useState(false)
   const [activeView, setActiveView] = useState<DashboardView>('orgChart')
   const [teams, setTeams] = useState<Team[]>([])
@@ -41,7 +42,6 @@ export function Dashboard({ onOpenScanner }: DashboardProps): JSX.Element {
 
   const handleAgentClick = (id: string): void => {
     setSelectedAgent(id)
-    toggleDashboard()
   }
 
   const handleCreateTeam = async (): Promise<void> => {
@@ -67,7 +67,10 @@ export function Dashboard({ onOpenScanner }: DashboardProps): JSX.Element {
   const teamColors = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#06b6d4']
 
   return (
-    <div className="border-b border-border bg-card p-4 space-y-4 max-h-[60vh] overflow-y-auto">
+    <div className={cn(
+      "bg-card p-4 space-y-4 overflow-y-auto",
+      fullHeight ? "h-full flex-1" : "border-b border-border max-h-[60vh]"
+    )}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold">{t('teamMgmt.title')}</h2>

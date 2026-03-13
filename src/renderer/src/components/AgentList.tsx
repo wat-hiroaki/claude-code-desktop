@@ -18,7 +18,8 @@ import {
   Pin,
   PinOff,
   Download,
-  ArrowUpDown
+  ArrowUpDown,
+  Radar
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { getStatusDot, getInitials } from '../lib/status'
@@ -316,6 +317,22 @@ export function AgentList(): JSX.Element {
       </div>
 
       <div className="flex-1 overflow-y-auto" role="list" aria-label={t('agent.listLabel', 'Agent list')}>
+        {/* ── Overview Section ── */}
+        <div className="border-b border-border">
+          <button
+            onClick={() => setSelectedAgent(null)}
+            className={cn(
+              'w-full flex items-center gap-2 px-3 py-2 text-left transition-colors',
+              selectedAgentId === null ? 'bg-indigo-500/10 text-indigo-400 font-medium' : 'hover:bg-accent/50 text-muted-foreground'
+            )}
+          >
+            <Radar size={14} className={selectedAgentId === null ? 'text-indigo-400' : 'text-muted-foreground'} />
+            <span className="text-[11px] font-semibold flex-1 tracking-wide uppercase">
+              {t('sidebar.overview', 'System Overview')}
+            </span>
+          </button>
+        </div>
+
         {/* ── Inbox Section ── */}
         {attentionAgents.length > 0 && !search && (
           <div className="border-b border-border">

@@ -21,7 +21,11 @@ import { UpdateBanner } from './components/UpdateBanner'
 
 import type { DiscoveredWorkspace } from '@shared/types'
 
-function PaneGrid(): JSX.Element {
+interface PaneGridProps {
+  onOpenScanner?: () => void
+}
+
+function PaneGrid({ onOpenScanner }: PaneGridProps): JSX.Element {
   const { selectedAgentId, paneLayout, paneAgentIds, setPaneAgent, agents, usePtyMode } = useAppStore()
   const { t } = useTranslation()
 
@@ -41,8 +45,8 @@ function PaneGrid(): JSX.Element {
   if (paneLayout === 1) {
     if (!selectedAgentId) {
       return (
-        <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-          {t('pane.selectAgent', 'Select an agent to start')}
+        <div className="flex-1 min-w-0 overflow-hidden h-full">
+          <Dashboard fullHeight onOpenScanner={onOpenScanner} />
         </div>
       )
     }
@@ -137,7 +141,12 @@ function PaneGrid(): JSX.Element {
   )
 }
 
-function MainLayout({ showRightPane }: { showRightPane: boolean }): JSX.Element {
+interface MainLayoutProps {
+  showRightPane: boolean
+  onOpenScanner?: () => void
+}
+
+function MainLayout({ showRightPane, onOpenScanner }: MainLayoutProps): JSX.Element {
   const panelIds = showRightPane
     ? ['sidebar', 'terminal', 'context']
     : ['sidebar', 'terminal']
@@ -168,7 +177,7 @@ function MainLayout({ showRightPane }: { showRightPane: boolean }): JSX.Element 
       <ResizeHandle />
       <Panel id="terminal" minSize={300}>
         <ErrorBoundary fallbackMessage="Terminal failed to render">
-          <PaneGrid />
+          <PaneGrid onOpenScanner={onOpenScanner} />
         </ErrorBoundary>
       </Panel>
       {showRightPane && (
@@ -194,9 +203,7 @@ export function App(): JSX.Element {
     updateAgentInList,
     addMessage,
     setTeamStats,
-    showDashboard,
     showRightPane,
-    toggleDashboard,
     toggleRightPane,
     toggleBroadcast
   } = useAppStore()
@@ -277,7 +284,7 @@ export function App(): JSX.Element {
     const handler = (e: KeyboardEvent): void => {
       if (e.ctrlKey && !e.shiftKey && e.key === 'd') {
         e.preventDefault()
-        toggleDashboard()
+        setSelectedAgent(null)
       }
       if (e.ctrlKey && e.shiftKey && e.key === 'B') {
         e.preventDefault()
@@ -339,24 +346,18 @@ export function App(): JSX.Element {
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [agents, selectedAgentId, setSelectedAgent, toggleDashboard, toggleBroadcast, toggleRightPane, loadAgents])
+  }, [agents, selectedAgentId, setSelectedAgent, toggleBroadcast, toggleRightPane, loadAgents])
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <TitleBar />
       <UpdateBanner />
 
-      {showDashboard && (
-        <ErrorBoundary fallbackMessage="Dashboard failed to render">
-          <Dashboard onOpenScanner={() => setShowWorkspaceScanner(true)} />
-        </ErrorBoundary>
-      )}
-
       <div className="flex flex-1 overflow-hidden">
         {agents.length === 0 ? (
           <WelcomeScreen onCreateAgent={() => setShowCreateDialog(true)} onOpenScanner={() => setShowWorkspaceScanner(true)} />
         ) : (
-          <MainLayout showRightPane={showRightPane} />
+          <MainLayout showRightPane={showRightPane} onOpenScanner={() => setShowWorkspaceScanner(true)} />
         )}
       </div>
 

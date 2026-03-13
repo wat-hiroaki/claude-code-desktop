@@ -183,19 +183,19 @@ function ActionSummary({
     <button
       onClick={onToggle}
       className={cn(
-        'flex items-center gap-1.5 text-[11px] hover:opacity-80 transition-opacity w-full text-left',
+        'flex items-center gap-1.5 text-[11px] hover:brightness-125 transition-all w-full text-left',
         action.colorClass
       )}
     >
-      <span className="text-muted-foreground/40 mr-0.5 select-none shrink-0">{time}</span>
-      <Icon size={12} className="shrink-0" />
-      <span className="font-medium shrink-0">{t(action.label)}</span>
+      <span className="text-cyan-900/60 font-mono mr-0.5 select-none shrink-0">{time}</span>
+      <Icon size={12} className="shrink-0 drop-shadow-[0_0_5px_currentColor]" />
+      <span className="font-bold shrink-0 tracking-wide drop-shadow-[0_0_2px_currentColor]">{t(action.label)}</span>
       {action.detail && (
-        <span className="font-mono text-[10px] opacity-75 truncate">{action.detail}</span>
+        <span className="font-mono text-[10px] opacity-80 truncate">{action.detail}</span>
       )}
       <ChevronRight
         size={10}
-        className={cn('ml-auto shrink-0 transition-transform opacity-50', expanded && 'rotate-90')}
+        className={cn('ml-auto shrink-0 transition-transform opacity-70', expanded && 'rotate-90')}
       />
     </button>
   )
@@ -232,14 +232,14 @@ function CurrentActionBar({ messages }: { messages: Message[] }): JSX.Element | 
   const Icon = currentAction.icon
 
   return (
-    <div
-      className={cn(
-        'flex items-center gap-1.5 px-3 py-1 border-b border-border/50 text-[11px]',
-        'bg-card/60 backdrop-blur-sm',
-        currentAction.colorClass
-      )}
-    >
-      <Brain size={11} className="text-muted-foreground/60 shrink-0 animate-pulse" />
+      <div
+        className={cn(
+          'flex items-center gap-1.5 px-3 py-1 border-b border-cyan-900/30 text-[11px]',
+          'bg-[#0a0a0f]/80 backdrop-blur-sm shadow-[0_4px_20px_rgba(6,182,212,0.05)]',
+          currentAction.colorClass
+        )}
+      >
+        <Brain size={11} className="text-cyan-400/60 shrink-0 animate-pulse drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
       <Icon size={11} className="shrink-0" />
       <span className="font-medium shrink-0">{t(currentAction.label)}</span>
       {currentAction.detail && (
@@ -286,9 +286,9 @@ function TerminalLine({ message }: { message: Message }): JSX.Element {
   // Error
   if (isError) {
     return (
-      <div className="flex items-start gap-1.5 py-1 text-red-500 dark:text-red-400">
-        <span className="text-muted-foreground/40 text-[11px] mr-1 select-none shrink-0">{time}</span>
-        <AlertCircle size={12} className="mt-0.5 shrink-0" />
+      <div className="flex items-start gap-1.5 py-1 text-red-500 drop-shadow-[0_0_5px_rgba(239,68,68,0.6)]">
+        <span className="text-cyan-900/60 text-[11px] mr-1 select-none shrink-0 font-mono">{time}</span>
+        <AlertCircle size={12} className="mt-0.5 shrink-0 animate-pulse" />
         <span className="text-xs whitespace-pre-wrap break-words">{message.content}</span>
       </div>
     )
@@ -298,9 +298,9 @@ function TerminalLine({ message }: { message: Message }): JSX.Element {
   if (isManager) {
     return (
       <div className="py-1">
-        <span className="text-muted-foreground/40 text-[11px] mr-2 select-none">{time}</span>
-        <span className="text-green-600 dark:text-green-400 font-medium text-xs select-none">{'> '}</span>
-        <span className="text-green-600 dark:text-green-400 text-xs">{message.content}</span>
+        <span className="text-cyan-900/60 text-[11px] mr-2 select-none font-mono">{time}</span>
+        <span className="text-emerald-400 font-bold text-xs select-none drop-shadow-[0_0_3px_rgba(52,211,153,0.8)]">{'> '}</span>
+        <span className="text-emerald-400 font-medium text-xs drop-shadow-[0_0_2px_rgba(52,211,153,0.5)]">{message.content}</span>
       </div>
     )
   }
@@ -323,7 +323,7 @@ function TerminalLine({ message }: { message: Message }): JSX.Element {
             time={time}
           />
           {expanded && body && (
-            <pre className="ml-[72px] text-[10px] text-muted-foreground whitespace-pre-wrap break-words max-h-48 overflow-y-auto py-1 border-l-2 border-border/30 pl-2 mt-0.5">
+            <pre className="ml-[72px] text-[10px] text-cyan-700/80 whitespace-pre-wrap break-words max-h-48 overflow-y-auto py-1 border-l-2 border-cyan-800/50 pl-2 mt-0.5">
               {body}
             </pre>
           )}
@@ -338,15 +338,15 @@ function TerminalLine({ message }: { message: Message }): JSX.Element {
       <div className="py-0.5">
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-1 text-[11px] text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors"
+          className="flex items-center gap-1 text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors drop-shadow-[0_0_2px_rgba(129,140,248,0.5)]"
         >
-          <span className="text-muted-foreground/40 mr-1 select-none">{time}</span>
-          <Terminal size={10} />
+          <span className="text-cyan-900/60 font-mono mr-1 select-none">{time}</span>
+          <Terminal size={10} className="drop-shadow-[0_0_2px_currentColor]" />
           <ChevronRight size={10} className={cn('transition-transform', expanded && 'rotate-90')} />
-          <span className="font-mono">{header}</span>
+          <span className="font-mono tracking-wide">{header}</span>
         </button>
         {(expanded || !isLong) && body && (
-          <pre className="ml-[72px] text-[10px] text-muted-foreground whitespace-pre-wrap break-words max-h-48 overflow-y-auto py-1">
+          <pre className="ml-[72px] text-[10px] text-cyan-700/80 whitespace-pre-wrap break-words max-h-48 overflow-y-auto py-1">
             {body}
           </pre>
         )}
@@ -356,8 +356,8 @@ function TerminalLine({ message }: { message: Message }): JSX.Element {
 
   // Agent response
   return (
-    <div className="py-1">
-      <span className="text-muted-foreground/40 text-[11px] mr-2 select-none">{time}</span>
+    <div className="py-1 group">
+      <span className="text-cyan-900/60 text-[11px] mr-2 select-none font-mono">{time}</span>
       {message.contentType === 'code' || message.contentType === 'diff' ? (
         <pre className="inline text-xs font-mono whitespace-pre-wrap break-words">
           {message.contentType === 'diff'
@@ -366,19 +366,19 @@ function TerminalLine({ message }: { message: Message }): JSX.Element {
                   key={i}
                   className={cn(
                     'block',
-                    line.startsWith('+') && 'text-green-700 dark:text-green-400',
-                    line.startsWith('-') && 'text-red-700 dark:text-red-400',
-                    line.startsWith('@@') && 'text-blue-700 dark:text-blue-400'
+                    line.startsWith('+') && 'text-emerald-400 drop-shadow-[0_0_3px_rgba(52,211,153,0.6)]',
+                    line.startsWith('-') && 'text-red-400 drop-shadow-[0_0_3px_rgba(248,113,113,0.6)]',
+                    line.startsWith('@@') && 'text-indigo-400 drop-shadow-[0_0_3px_rgba(129,140,248,0.6)]'
                   )}
                 >
                   {line}
                 </span>
               ))
-            : <code>{message.content}</code>
+            : <code className="text-cyan-200/90 drop-shadow-[0_0_2px_rgba(165,243,252,0.4)]">{message.content}</code>
           }
         </pre>
       ) : (
-        <span className="text-xs whitespace-pre-wrap break-words">{message.content}</span>
+        <span className="text-xs whitespace-pre-wrap break-words text-cyan-200/90 drop-shadow-[0_0_2px_rgba(165,243,252,0.4)]">{message.content}</span>
       )}
     </div>
   )
@@ -450,15 +450,18 @@ export function TerminalView({ agentId, onClose, compact }: TerminalViewProps): 
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#fafafa] dark:bg-[#0d0d1a]">
+    <div className="flex-1 flex flex-col overflow-hidden bg-[#050505] text-cyan-500 font-mono tracking-wide relative">
+      {/* Matrix Scanline Overlay */}
+      <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,3px_100%] z-50 opacity-10 mix-blend-screen"></div>
+
       {/* Terminal Header */}
       <div className={cn(
-        'flex items-center justify-between border-b border-border bg-card/80',
+        'flex items-center justify-between border-b border-cyan-900/50 bg-[#0a0a0f]/90 backdrop-blur-md z-10',
         compact ? 'px-2 py-1.5' : 'px-3 py-2'
       )}>
         <div className="flex items-center gap-2 min-w-0">
-          <Terminal size={compact ? 12 : 14} className="text-muted-foreground shrink-0" />
-          <span className={cn('font-mono font-medium truncate', compact ? 'text-[11px]' : 'text-xs')}>
+          <Terminal size={compact ? 12 : 14} className="text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)] shrink-0" />
+          <span className={cn('font-mono font-bold text-cyan-300 drop-shadow-[0_0_4px_rgba(103,232,249,0.5)] truncate uppercase', compact ? 'text-[11px]' : 'text-xs')}>
             {agent.name}
           </span>
           <span className={cn(
@@ -529,11 +532,11 @@ export function TerminalView({ agentId, onClose, compact }: TerminalViewProps): 
 
       {/* Input */}
       <div className={cn(
-        'border-t border-border bg-card/80',
+        'border-t border-cyan-900/50 bg-[#0a0a0f]/90 backdrop-blur-md z-10',
         compact ? 'p-1.5' : 'p-2'
       )}>
         <div className="flex items-center gap-1.5">
-          <span className="text-green-600 dark:text-green-400 text-xs font-mono select-none shrink-0">{'>'}</span>
+          <span className="text-emerald-400 text-xs font-mono font-bold select-none shrink-0 drop-shadow-[0_0_3px_rgba(52,211,153,0.6)]">{'>'}</span>
           <input
             type="text"
             value={input}
@@ -541,7 +544,7 @@ export function TerminalView({ agentId, onClose, compact }: TerminalViewProps): 
             onKeyDown={handleKeyDown}
             placeholder={compact ? '...' : t('chat.placeholder')}
             className={cn(
-              'flex-1 bg-transparent outline-none font-mono placeholder:text-muted-foreground/30',
+              'flex-1 bg-transparent border-none outline-none font-mono text-cyan-300 placeholder:text-cyan-900/50 caret-cyan-400 drop-shadow-[0_0_2px_rgba(103,232,249,0.3)]',
               compact ? 'text-[11px]' : 'text-xs'
             )}
           />
