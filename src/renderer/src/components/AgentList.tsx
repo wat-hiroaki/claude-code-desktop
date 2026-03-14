@@ -2,6 +2,8 @@ import { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '../stores/useAppStore'
 import { CreateAgentDialog } from './CreateAgentDialog'
+import { AgentAvatar } from './AgentAvatar'
+import { EmojiPicker } from './EmojiPicker'
 import { showToast } from './ToastContainer'
 import {
   Plus,
@@ -21,6 +23,7 @@ import {
   ArrowUpDown,
   Radar
 } from 'lucide-react'
+import { Smile } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { getStatusDot, getInitials } from '../lib/status'
 import { WorkspaceSwitcher } from './WorkspaceSwitcher'
@@ -64,6 +67,8 @@ export function AgentList(): JSX.Element {
   const [contextMenu, setContextMenu] = useState<{ agentId: string; x: number; y: number } | null>(null)
   const contextMenuRef = useRef<HTMLDivElement>(null)
   const [workspaceColors, setWorkspaceColors] = useState<Record<string, string>>({})
+  const [emojiPickerTarget, setEmojiPickerTarget] = useState<string | null>(null)
+  const emojiAnchorRef = useRef<HTMLButtonElement>(null)
 
   // Load app version
   useEffect(() => {
@@ -490,9 +495,7 @@ export function AgentList(): JSX.Element {
 
                         {/* Avatar + status dot */}
                         <div className="relative flex-shrink-0">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-medium">
-                            {getInitials(agent.name)}
-                          </div>
+                          <AgentAvatar agent={agent} size="md" />
                           <div
                             className={cn(
                               'absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-card',
@@ -544,6 +547,14 @@ export function AgentList(): JSX.Element {
               {ctxAgent.isPinned ? t('agent.actions.unpin') : t('agent.actions.pin')}
             </button>
             <button
+              ref={emojiAnchorRef}
+              onClick={() => setEmojiPickerTarget(emojiPickerTarget === ctxAgent.id ? null : ctxAgent.id)}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-muted/50 transition-colors"
+            >
+              <Smile size={12} />
+              {t('agent.actions.changeIcon', 'Change Icon')}
+            </button>
+            <button
               onClick={() => handleRestartAgent(ctxAgent.id)}
               className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-muted/50 transition-colors"
             >
@@ -572,6 +583,26 @@ export function AgentList(): JSX.Element {
               <Archive size={12} />
               {t('agent.actions.archive')}
             </button>
+            {/* Emoji picker inline */}
+            {emojiPickerTarget === ctxAgent.id && (
+              <div className="relative">
+                <EmojiPicker
+                  value={ctxAgent.icon}
+                  onChange={async (emoji) => {
+                    try {
+                      await window.api.updateAgent(ctxAgent.id, { icon: emoji })
+                      useAppStore.getState().updateAgentInList(ctxAgent.id, { icon: emoji })
+                    } catch (err) {
+                      showToast(String(err), 'error')
+                    }
+                    setEmojiPickerTarget(null)
+                    setContextMenu(null)
+                  }}
+                  onClose={() => setEmojiPickerTarget(null)}
+                  anchorRef={emojiAnchorRef}
+                />
+              </div>
+            )}
           </div>
         )
       })()}
