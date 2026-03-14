@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '../stores/useAppStore'
 import { cn } from '../lib/utils'
@@ -77,11 +77,14 @@ function AgentNode({ agent, x, y, onClick }: AgentNodeProps): JSX.Element {
   const { t } = useTranslation()
   const glow = statusGlow[agent.status]
   const nodeRadius = 28
+  const [hovered, setHovered] = useState(false)
 
   return (
     <g
       className="cursor-pointer"
       onClick={() => onClick(agent.id)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       role="button"
       tabIndex={0}
     >
@@ -117,7 +120,7 @@ function AgentNode({ agent, x, y, onClick }: AgentNodeProps): JSX.Element {
         r={nodeRadius}
         fill="rgba(13, 13, 26, 0.85)"
         stroke={statusFill[agent.status]}
-        strokeWidth={2}
+        strokeWidth={hovered ? 3 : 2}
       />
 
       {/* Inner status indicator */}
@@ -186,6 +189,52 @@ function AgentNode({ agent, x, y, onClick }: AgentNodeProps): JSX.Element {
             ? agent.currentTask.slice(0, 19) + '...'
             : agent.currentTask}
         </text>
+      )}
+
+      {/* Hover popover — rich detail card */}
+      {hovered && (
+        <foreignObject
+          x={x + nodeRadius + 8}
+          y={y - 50}
+          width={180}
+          height={110}
+          style={{ overflow: 'visible' }}
+        >
+          <div
+            style={{
+              background: 'rgba(15, 15, 30, 0.95)',
+              border: `1px solid ${statusFill[agent.status]}40`,
+              borderRadius: '8px',
+              padding: '8px 10px',
+              color: '#e2e8f0',
+              fontSize: '10px',
+              fontFamily: 'monospace',
+              lineHeight: '1.5',
+              backdropFilter: 'blur(8px)',
+              boxShadow: `0 4px 20px ${statusFill[agent.status]}15`
+            }}
+          >
+            <div style={{ fontWeight: 'bold', fontSize: '11px', marginBottom: '4px', color: statusFill[agent.status] }}>
+              {agent.name}
+            </div>
+            <div style={{ color: '#94a3b8' }}>
+              Status: <span style={{ color: statusFill[agent.status] }}>{agent.status.toUpperCase()}</span>
+            </div>
+            {agent.workspaceId && (
+              <div style={{ color: '#94a3b8' }}>
+                Workspace: <span style={{ color: '#cbd5e1' }}>{agent.workspaceId.split('/').pop()}</span>
+              </div>
+            )}
+            {agent.currentTask && (
+              <div style={{ color: '#94a3b8', marginTop: '2px' }}>
+                Task: <span style={{ color: '#cbd5e1' }}>{agent.currentTask.slice(0, 40)}{agent.currentTask.length > 40 ? '...' : ''}</span>
+              </div>
+            )}
+            <div style={{ color: '#64748b', fontSize: '9px', marginTop: '3px' }}>
+              Updated: {new Date(agent.updatedAt).toLocaleTimeString()}
+            </div>
+          </div>
+        </foreignObject>
       )}
     </g>
   )
@@ -262,7 +311,7 @@ function CentralHub({
 }: {
   centerX: number
   centerY: number
-  stats: { total: number; active: number; error: number }
+  stats: { total: number; active: number; thinking: number; toolRunning: number; error: number }
 }): JSX.Element {
   const { t } = useTranslation()
   const hubRadius = 40
@@ -332,13 +381,31 @@ function CentralHub({
       {/* Active count */}
       <text
         x={centerX}
-        y={centerY + 18}
+        y={centerY + 16}
         textAnchor="middle"
         className="fill-gray-500 text-[7px] font-mono"
         style={{ userSelect: 'none' }}
       >
         {stats.active}/{stats.total} {t('activityMap.online', 'ONLINE')}
       </text>
+
+      {/* Status breakdown */}
+      {(stats.thinking > 0 || stats.toolRunning > 0) && (
+        <text
+          x={centerX}
+          y={centerY + 28}
+          textAnchor="middle"
+          className="text-[6px] font-mono"
+          style={{ userSelect: 'none' }}
+        >
+          {stats.thinking > 0 && (
+            <tspan fill="#60a5fa">⚡{stats.thinking} </tspan>
+          )}
+          {stats.toolRunning > 0 && (
+            <tspan fill="#fbbf24">⚙{stats.toolRunning}</tspan>
+          )}
+        </text>
+      )}
     </g>
   )
 }
@@ -438,8 +505,10 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps): JSX.Elem
   const stats = useMemo(() => {
     const total = activeAgents.length
     const active = activeAgents.filter((a) => a.status === 'active' || a.status === 'thinking' || a.status === 'tool_running').length
+    const thinking = activeAgents.filter((a) => a.status === 'thinking').length
+    const toolRunning = activeAgents.filter((a) => a.status === 'tool_running').length
     const error = activeAgents.filter((a) => a.status === 'error').length
-    return { total, active, error }
+    return { total, active, thinking, toolRunning, error }
   }, [activeAgents])
 
   if (activeAgents.length === 0) {
