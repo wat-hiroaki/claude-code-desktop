@@ -70,7 +70,22 @@ export const useAppStore = create<AppState>((set) => ({
   agents: [],
   selectedAgentId: null,
   setAgents: (agents) => set({ agents }),
-  setSelectedAgent: (id) => set({ selectedAgentId: id }),
+  setSelectedAgent: (id) => set((s) => {
+    if (s.paneLayout > 1) {
+      const newPaneAgentIds = [...s.paneAgentIds]
+      if (id === null) {
+        // Switching to dashboard: clear pane 0
+        newPaneAgentIds[0] = null
+        return { selectedAgentId: null, showDashboard: true, paneAgentIds: newPaneAgentIds }
+      }
+      // Selecting an agent: assign to first empty pane, or pane 0 if all full
+      const emptyIdx = newPaneAgentIds.findIndex((pid) => !pid)
+      const targetIdx = emptyIdx !== -1 ? emptyIdx : 0
+      newPaneAgentIds[targetIdx] = id
+      return { selectedAgentId: id, showDashboard: false, paneAgentIds: newPaneAgentIds }
+    }
+    return { selectedAgentId: id, showDashboard: id === null }
+  }),
   updateAgentInList: (id, updates) =>
     set((state) => ({
       agents: state.agents.map((a) => (a.id === id ? { ...a, ...updates } : a))
@@ -125,6 +140,24 @@ export const useAppStore = create<AppState>((set) => ({
   toggleRightPane: () => set((s) => ({ showRightPane: !s.showRightPane })),
   toggleBroadcast: () => set((s) => ({ showBroadcast: !s.showBroadcast })),
   toggleDashboard: () => set((s) => {
+    if (s.paneLayout > 1) {
+      // Multi-pane: toggle dashboard in pane 0
+      const currentPane0 = s.paneAgentIds[0]
+      if (currentPane0) {
+        // Pane 0 has an agent → clear it to show dashboard
+        const newPaneAgentIds = [...s.paneAgentIds]
+        newPaneAgentIds[0] = null
+        return { selectedAgentId: null, showDashboard: true, paneAgentIds: newPaneAgentIds }
+      }
+      // Pane 0 is already dashboard → select first agent
+      const firstAgent = s.agents.find(a => a.status !== 'archived')
+      if (firstAgent) {
+        const newPaneAgentIds = [...s.paneAgentIds]
+        newPaneAgentIds[0] = firstAgent.id
+        return { selectedAgentId: firstAgent.id, showDashboard: false, paneAgentIds: newPaneAgentIds }
+      }
+      return {}
+    }
     if (s.selectedAgentId) {
       // Currently viewing an agent → switch to dashboard
       return { selectedAgentId: null, showDashboard: true }
