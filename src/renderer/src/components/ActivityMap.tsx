@@ -181,23 +181,23 @@ function AgentNode({ agent, x, y, onClick, palette, statusTheme, workspaceName }
       <circle cx={x} cy={y} r={4} fill={theme.color} opacity={0.8} className={isActive ? 'animate-pulse' : ''} />
 
       {/* テキスト - Initials */}
-      <text x={x} y={y - 28} textAnchor="middle" className="font-mono text-[10px] tracking-widest font-semibold" fill={theme.color} opacity={0.9} style={{ userSelect: 'none' }}>
+      <text x={x} y={y - 28} textAnchor="middle" className="font-mono text-[11px] tracking-widest font-bold" fill={theme.color} style={{ userSelect: 'none' }}>
         {getInitials(agent.name)}
       </text>
 
       {/* エージェント名 */}
-      <text x={x} y={y + 30} textAnchor="middle" className="font-mono text-[9.5px] uppercase tracking-wider font-medium" fill={palette.textMain} style={{ userSelect: 'none' }}>
+      <text x={x} y={y + 30} textAnchor="middle" className="font-mono text-[11px] uppercase tracking-wider font-semibold" fill={palette.textMain} style={{ userSelect: 'none' }}>
         {agent.name.length > 12 ? agent.name.slice(0, 11) + '..' : agent.name}
       </text>
 
       {/* ワークスペース名 */}
-      <text x={x} y={y + 42} textAnchor="middle" className="font-mono text-[7.5px] uppercase tracking-wider" fill={palette.textMuted} style={{ userSelect: 'none' }}>
-        WKSP: {workspaceName.slice(0, 12)}
+      <text x={x} y={y + 44} textAnchor="middle" className="font-mono text-[8.5px] uppercase tracking-wider" fill={palette.textMuted} style={{ userSelect: 'none', opacity: 0.85 }}>
+        WKSP: {workspaceName.slice(0, 14)}
       </text>
 
       {/* ステータスバッジ */}
-      <rect x={x - 24} y={y + 47} width={48} height={12} fill={theme.color} opacity={0.12} rx={2} />
-      <text x={x} y={y + 56} textAnchor="middle" className="font-mono text-[7px] font-bold uppercase tracking-widest" fill={theme.color} style={{ userSelect: 'none', opacity: 0.9 }}>
+      <rect x={x - 28} y={y + 49} width={56} height={14} fill={theme.color} opacity={0.2} rx={3} />
+      <text x={x} y={y + 59} textAnchor="middle" className="font-mono text-[8px] font-bold uppercase tracking-widest" fill={theme.color} style={{ userSelect: 'none' }}>
         {theme.label}
       </text>
 
@@ -316,17 +316,17 @@ function SystemCore({ cx, cy, stats, palette }: { cx: number; cy: number; stats:
       </circle>
 
       {/* Core Text Elements */}
-      <text x={cx} y={cy - 10} textAnchor="middle" className="font-mono font-medium tracking-[0.15em] text-[12px]" fill={palette.textMain} style={{ userSelect: 'none' }}>
+      <text x={cx} y={cy - 10} textAnchor="middle" className="font-mono font-bold tracking-[0.2em] text-[14px]" fill={palette.textMain} style={{ userSelect: 'none' }}>
         SYSTEM
       </text>
 
       {/* Health / Error display */}
-      <text x={cx} y={cy + 10} textAnchor="middle" className="font-mono text-[9px] uppercase font-bold tracking-widest" fill={isDanger ? palette.red : palette.green} style={{ userSelect: 'none' }}>
+      <text x={cx} y={cy + 12} textAnchor="middle" className="font-mono text-[11px] uppercase font-bold tracking-widest" fill={isDanger ? palette.red : palette.green} style={{ userSelect: 'none' }}>
         {isDanger ? 'ERR' : 'OK'}
       </text>
 
       {/* Online Stats */}
-      <text x={cx} y={cy + 25} textAnchor="middle" className="font-mono text-[7.5px]" fill={palette.textMuted} style={{ userSelect: 'none' }}>
+      <text x={cx} y={cy + 28} textAnchor="middle" className="font-mono text-[9px] font-medium" fill={palette.textMuted} style={{ userSelect: 'none' }}>
         NODES: {stats.active}/{stats.total}
       </text>
     </g>
@@ -534,14 +534,14 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps) {
           height: `${mapHeight}px`
         }}
       >
-        {/* Subtle grid gradient */}
+        {/* Subtle grid */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            backgroundImage: `linear-gradient(${palette.grid} 1px, transparent 1px), linear-gradient(90deg, ${palette.grid} 1px, transparent 1px)`,
-            backgroundSize: '20px 20px',
+            backgroundImage: `linear-gradient(${palette.accent} 1px, transparent 1px), linear-gradient(90deg, ${palette.accent} 1px, transparent 1px)`,
+            backgroundSize: '24px 24px',
             backgroundPosition: `${pan.x}px ${pan.y}px`,
-            opacity: 0.15
+            opacity: 0.06
           }}
         />
 

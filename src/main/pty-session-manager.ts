@@ -244,20 +244,27 @@ export class PtySessionManager {
     }, 2000)
   }
 
+  // Lines that are static status indicators, not meaningful output
+  private static readonly NOISE_PATTERNS = /^(\d+ tokens?|bypass permissions|medium|low|high|effort|shift\+tab)/i
+
   private detectAndUpdateStatus(session: PtySession, rawData: string): void {
     session.outputBuffer = (session.outputBuffer + rawData).slice(-500)
     const recentClean = stripAnsi(rawData)
 
+    // Ignore noise-only output (token counts, status bar fragments)
+    const meaningfulLines = recentClean.split('\n').map(l => l.trim()).filter(l => l.length > 2 && !PtySessionManager.NOISE_PATTERNS.test(l))
+
     // Track last meaningful output line for sidebar preview
-    const lines = recentClean.split('\n').map((l) => l.trim()).filter((l) => l.length > 2)
-    if (lines.length > 0) {
-      session.lastOutputLine = lines[lines.length - 1].slice(0, 80)
+    if (meaningfulLines.length > 0) {
+      session.lastOutputLine = meaningfulLines[meaningfulLines.length - 1].slice(0, 80)
     }
+
+    // If the entire chunk is noise, don't change status at all
+    if (meaningfulLines.length === 0) return
 
     // Session conflict — notify UI instead of auto-killing
     if (/already in use/i.test(recentClean)) {
       this.setStatus(session, 'session_conflict')
-      // Do NOT auto-kill: let the user decide via SessionRecoveryDialog
       console.warn(`[PtySession] Session conflict detected for ${session.agentId}. Awaiting user action.`)
       return
     }

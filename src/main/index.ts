@@ -100,12 +100,21 @@ function sendNotification(agentId: string, type: 'awaiting' | 'error' | 'taskCom
 
 // Debounce notification per agent: suppress repeated same-type notifications within window
 const notificationTimers = new Map<string, ReturnType<typeof setTimeout>>()
-const NOTIFICATION_DEBOUNCE_MS = 10000
+const NOTIFICATION_DEBOUNCE_MS = 30000
 
 function debouncedNotification(agentId: string, type: 'awaiting' | 'error' | 'taskComplete'): void {
   const key = `${agentId}:${type}`
   if (notificationTimers.has(key)) return // Already pending or recently sent
-  sendNotification(agentId, type)
+
+  // Skip OS notification if window is focused (only send in-app toast)
+  if (mainWindow?.isFocused()) {
+    mainWindow.webContents.send('notification',
+      type === 'awaiting' ? 'Approval Required' : type === 'error' ? 'Error Occurred' : 'Task Complete',
+      `${database.getAgent(agentId)?.name || 'Agent'}: Check agent for details`
+    )
+  } else {
+    sendNotification(agentId, type)
+  }
   notificationTimers.set(key, setTimeout(() => notificationTimers.delete(key), NOTIFICATION_DEBOUNCE_MS))
 }
 
