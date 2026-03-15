@@ -64,6 +64,11 @@ interface AppState {
   theme: 'dark' | 'light' | 'system'
   setTheme: (theme: 'dark' | 'light' | 'system') => void
 
+  // Memory monitoring
+  agentMemory: Map<string, number>
+  setAgentMemory: (agentId: string, memoryMB: number) => void
+  setAgentMemoryBulk: (entries: Array<{ agentId: string; memoryMB: number }>) => void
+
   // Terminal
   terminalFontSize: number
   setTerminalFontSize: (size: number) => void
@@ -200,6 +205,19 @@ export const useAppStore = create<AppState>((set) => ({
     window.api?.updateSettings({ usePtyMode: use })
     set({ usePtyMode: use })
   },
+
+  // Memory monitoring
+  agentMemory: new Map(),
+  setAgentMemory: (agentId, memoryMB) => set((state) => {
+    const next = new Map(state.agentMemory)
+    next.set(agentId, memoryMB)
+    return { agentMemory: next }
+  }),
+  setAgentMemoryBulk: (entries) => set((state) => {
+    const next = new Map(state.agentMemory)
+    for (const { agentId, memoryMB } of entries) next.set(agentId, memoryMB)
+    return { agentMemory: next }
+  }),
 
   // Terminal
   terminalFontSize: parseInt(localStorage.getItem('terminalFontSize') ?? '13'),

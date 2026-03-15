@@ -293,7 +293,11 @@ export function App(): JSX.Element {
     })
 
     const unsubNotification = window.api.onNotification((title, body) => {
-      showToast(title, body, title.includes('Error') ? 'error' : 'warning')
+      showToast(title, body, title.includes('Error') ? 'error' : title.includes('Memory') ? 'warning' : 'warning')
+    })
+
+    const unsubMemory = window.api.onMemoryUpdate((data) => {
+      useAppStore.getState().setAgentMemoryBulk(data)
     })
 
     // Listen for OS theme changes (when theme is 'system')
@@ -316,6 +320,7 @@ export function App(): JSX.Element {
       unsubOutput()
       unsubStatus()
       unsubNotification()
+      unsubMemory()
       mql.removeEventListener('change', handleSystemTheme)
       clearInterval(statsInterval)
     }

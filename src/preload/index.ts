@@ -47,6 +47,12 @@ const api: ElectronAPI = {
 
   // Team stats
   getTeamStats: () => ipcRenderer.invoke('team:stats'),
+  pollMemory: () => ipcRenderer.invoke('memory:poll'),
+  onMemoryUpdate: (callback: (data: Array<{ agentId: string; memoryMB: number; pid: number }>) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: Array<{ agentId: string; memoryMB: number; pid: number }>) => callback(data)
+    ipcRenderer.on('memory:update', handler)
+    return () => ipcRenderer.removeListener('memory:update', handler)
+  },
 
   // Dialog
   selectFolder: () => ipcRenderer.invoke('dialog:selectFolder'),

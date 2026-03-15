@@ -24,6 +24,8 @@ interface AppSettings {
   windowBounds?: WindowBounds
   notifications: NotificationSettings
   composerHeight: number
+  memoryThresholdMB: number
+  autoRestartOnMemoryExceeded: boolean
 }
 
 interface DBData {
@@ -76,7 +78,9 @@ export class Database {
       settings: {
         usePtyMode: true,
         notifications: { enabled: true, taskComplete: true, approvalRequired: true, errors: true },
-        composerHeight: 0
+        composerHeight: 0,
+        memoryThresholdMB: 2048,
+        autoRestartOnMemoryExceeded: false
       },
       nextMessageId: 1,
       sessionScrollbacks: {}
@@ -105,6 +109,12 @@ export class Database {
     }
     if (typeof settings.composerHeight !== 'number') {
       settings.composerHeight = 0
+    }
+    if (typeof settings.memoryThresholdMB !== 'number') {
+      settings.memoryThresholdMB = 2048
+    }
+    if (typeof settings.autoRestartOnMemoryExceeded !== 'boolean') {
+      settings.autoRestartOnMemoryExceeded = false
     }
 
     // Backfill agent-level fields added after initial release

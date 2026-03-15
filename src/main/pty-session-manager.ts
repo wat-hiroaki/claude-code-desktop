@@ -1,5 +1,5 @@
 import * as pty from 'node-pty'
-import { execFileSync } from 'child_process'
+import { execFile, execFileSync } from 'child_process'
 import { existsSync } from 'fs'
 import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
@@ -15,9 +15,16 @@ interface PtySession {
   scrollbackBuffer: string
   lastStatus: AgentStatus
   lastOutputLine: string
+  memoryMB: number
   _retryCount?: number
   _conflictRetried?: boolean
   _idleTimer?: ReturnType<typeof setTimeout>
+}
+
+export interface AgentMemoryInfo {
+  agentId: string
+  memoryMB: number
+  pid: number
 }
 
 type PtyDataCallback = (agentId: string, data: string) => void
@@ -115,6 +122,7 @@ export class PtySessionManager {
       scrollbackBuffer: this.database.getScrollback(agent.id),
       lastStatus: 'active',
       lastOutputLine: '',
+      memoryMB: 0,
       _conflictRetried: false
     }
 
@@ -214,8 +222,98 @@ export class PtySessionManager {
     return this.sessions.has(agentId)
   }
 
+  getSessionPid(agentId: string): number | null {
+    const session = this.sessions.get(agentId)
+    return session ? session.pty.pid : null
+  }
+
   getLastOutputLine(agentId: string): string {
     return this.sessions.get(agentId)?.lastOutputLine ?? ''
+  }
+
+  /** Get memory usage for all active sessions */
+  async pollMemoryUsage(): Promise<AgentMemoryInfo[]> {
+    const results: AgentMemoryInfo[] = []
+    const pids: { agentId: string; pid: number }[] = []
+
+    for (const [agentId, session] of this.sessions) {
+      const pid = session.pty.pid
+      if (pid) pids.push({ agentId, pid })
+    }
+
+    if (pids.length === 0) return results
+
+    if (process.platform === 'win32') {
+      // Windows: use tasklist to get memory for all PIDs at once
+      try {
+        const pidList = pids.map(p => p.pid)
+        const output = await new Promise<string>((resolve, reject) => {
+          // Get memory for process trees (parent cmd.exe + child claude processes)
+          const filters = pidList.map(pid => `/FI "PID eq ${pid}"`).join(' ')
+          execFile('cmd.exe', ['/c', `tasklist /FO CSV /NH ${filters}`], { timeout: 5000 }, (err, stdout) => {
+            if (err) reject(err)
+            else resolve(stdout)
+          })
+        })
+        const memByPid = new Map<number, number>()
+        for (const line of output.split('\n')) {
+          const match = line.match(/"[^"]*","(\d+)","[^"]*","[^"]*","([\d,]+)\sK"/)
+          if (match) {
+            const pid = parseInt(match[1])
+            const memKB = parseInt(match[2].replace(/,/g, ''))
+            memByPid.set(pid, (memByPid.get(pid) || 0) + Math.round(memKB / 1024))
+          }
+        }
+        for (const { agentId, pid } of pids) {
+          const mb = memByPid.get(pid) || 0
+          const session = this.sessions.get(agentId)
+          if (session) session.memoryMB = mb
+          results.push({ agentId, memoryMB: mb, pid })
+        }
+      } catch {
+        // Fallback: return last known values
+        for (const { agentId, pid } of pids) {
+          const session = this.sessions.get(agentId)
+          results.push({ agentId, memoryMB: session?.memoryMB || 0, pid })
+        }
+      }
+    } else {
+      // Unix: use ps
+      try {
+        const pidList = pids.map(p => p.pid).join(',')
+        const output = await new Promise<string>((resolve, reject) => {
+          execFile('ps', ['-o', 'pid=,rss=', '-p', pidList], { timeout: 5000 }, (err, stdout) => {
+            if (err) reject(err)
+            else resolve(stdout)
+          })
+        })
+        const memByPid = new Map<number, number>()
+        for (const line of output.trim().split('\n')) {
+          const parts = line.trim().split(/\s+/)
+          if (parts.length === 2) {
+            memByPid.set(parseInt(parts[0]), Math.round(parseInt(parts[1]) / 1024))
+          }
+        }
+        for (const { agentId, pid } of pids) {
+          const mb = memByPid.get(pid) || 0
+          const session = this.sessions.get(agentId)
+          if (session) session.memoryMB = mb
+          results.push({ agentId, memoryMB: mb, pid })
+        }
+      } catch {
+        for (const { agentId, pid } of pids) {
+          const session = this.sessions.get(agentId)
+          results.push({ agentId, memoryMB: session?.memoryMB || 0, pid })
+        }
+      }
+    }
+
+    return results
+  }
+
+  /** Get cached memory for a single agent */
+  getMemoryMB(agentId: string): number {
+    return this.sessions.get(agentId)?.memoryMB || 0
   }
 
   getScrollback(agentId: string): string {

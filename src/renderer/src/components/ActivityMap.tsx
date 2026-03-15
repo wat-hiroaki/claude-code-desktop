@@ -121,9 +121,10 @@ interface AgentNodeProps {
   palette: CyberPalette
   statusTheme: Record<AgentStatus, CyberStyle>
   workspaceName: string
+  memoryMB: number
 }
 
-function AgentNode({ agent, x, y, onClick, palette, statusTheme, workspaceName }: AgentNodeProps) {
+function AgentNode({ agent, x, y, onClick, palette, statusTheme, workspaceName, memoryMB }: AgentNodeProps) {
   const [hovered, setHovered] = useState(false)
   const theme = statusTheme[agent.status]
   const isActive = ['active', 'thinking', 'tool_running', 'awaiting'].includes(agent.status)
@@ -201,6 +202,13 @@ function AgentNode({ agent, x, y, onClick, palette, statusTheme, workspaceName }
         {theme.label}
       </text>
 
+      {/* メモリ使用量 */}
+      {memoryMB > 0 && (
+        <text x={x} y={y + 72} textAnchor="middle" className="font-mono text-[7.5px] font-medium" fill={memoryMB > 2048 ? palette.red : memoryMB > 1024 ? palette.orange : palette.textMuted} style={{ userSelect: 'none' }}>
+          MEM: {memoryMB >= 1024 ? `${(memoryMB / 1024).toFixed(1)}GB` : `${memoryMB}MB`}
+        </text>
+      )}
+
       {/* Hover Info Panel (Sleek Tooltip) */}
       {hovered && (
         <foreignObject x={x + 30} y={y - 45} width={200} height={120} style={{ overflow: 'visible', zIndex: 100 }}>
@@ -231,6 +239,14 @@ function AgentNode({ agent, x, y, onClick, palette, statusTheme, workspaceName }
               <div className="flex justify-between mb-1 opacity-90">
                 <span style={{ color: palette.textMuted }}>WORKSP</span>
                 <span className="truncate ml-2 text-right">{workspaceName}</span>
+              </div>
+            )}
+            {memoryMB > 0 && (
+              <div className="flex justify-between mb-1 opacity-90">
+                <span style={{ color: palette.textMuted }}>MEMORY</span>
+                <span style={{ color: memoryMB > 2048 ? palette.red : memoryMB > 1024 ? palette.orange : palette.textMain }}>
+                  {memoryMB >= 1024 ? `${(memoryMB / 1024).toFixed(1)} GB` : `${memoryMB} MB`}
+                </span>
               </div>
             )}
             {agent.currentTask && (
@@ -384,7 +400,7 @@ function CyberSectorLabel({ team, startAngle, endAngle, cx, cy, radius, palette 
 // MAIN EXPORT
 // ---------------------------------------------------------
 export function ActivityMap({ teams, onAgentClick }: ActivityMapProps) {
-  const { agents, usePtyMode, updateAgentInList } = useAppStore()
+  const { agents, usePtyMode, updateAgentInList, agentMemory } = useAppStore()
   const palette = useCyberPalette()
   const statusTheme = useMemo(() => getStatusTheme(palette), [palette])
   const activeAgents = agents.filter((a) => a.status !== 'archived')
@@ -578,7 +594,7 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps) {
             {activeAgents.map((agent) => {
               const pos = positions.get(agent.id)
               if (!pos) return null
-              return <AgentNode key={agent.id} agent={agent} x={pos.x} y={pos.y} onClick={handleAgentNodeClick} palette={palette} statusTheme={statusTheme} workspaceName={resolveWorkspaceName(agent)} />
+              return <AgentNode key={agent.id} agent={agent} x={pos.x} y={pos.y} onClick={handleAgentNodeClick} palette={palette} statusTheme={statusTheme} workspaceName={resolveWorkspaceName(agent)} memoryMB={agentMemory.get(agent.id) || 0} />
             })}
           </g>
           

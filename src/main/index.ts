@@ -533,6 +533,53 @@ function setupIPC(): void {
     return database.getTeamStats()
   })
 
+  // Memory monitoring
+  ipcMain.handle('memory:poll', async () => {
+    return ptySessionManager.pollMemoryUsage()
+  })
+
+  // Memory monitor timer (every 15s)
+  setInterval(async () => {
+    if (!mainWindow) return
+    try {
+      const memInfo = await ptySessionManager.pollMemoryUsage()
+      if (memInfo.length === 0) return
+
+      mainWindow.webContents.send('memory:update', memInfo)
+
+      const settings = database.getSettings()
+      const threshold = settings.memoryThresholdMB || 2048
+
+      for (const info of memInfo) {
+        if (info.memoryMB > threshold) {
+          const agent = database.getAgent(info.agentId)
+          if (!agent) continue
+
+          if (settings.autoRestartOnMemoryExceeded && (agent.status === 'idle' || agent.status === 'active')) {
+            // Safe auto-restart: only idle/active agents
+            console.warn(`[MemoryMonitor] Agent ${agent.name} exceeded ${threshold}MB (${info.memoryMB}MB). Auto-restarting.`)
+            ptySessionManager.stopSession(info.agentId)
+            database.updateAgent(info.agentId, { status: 'idle' })
+            handleStatusChangeWithNotification(info.agentId, 'idle')
+            // Restart after brief delay
+            setTimeout(async () => {
+              const freshAgent = database.getAgent(info.agentId)
+              if (freshAgent) {
+                await ptySessionManager.startSession(freshAgent)
+                mainWindow?.webContents.send('notification', 'Memory Auto-Restart', `${agent.name}: restarted due to high memory (${info.memoryMB}MB)`)
+              }
+            }, 1000)
+          } else {
+            // Warning only
+            mainWindow.webContents.send('notification', 'Memory Warning', `${agent.name}: ${info.memoryMB}MB (threshold: ${threshold}MB)`)
+          }
+        }
+      }
+    } catch {
+      // Ignore polling errors
+    }
+  }, 15000)
+
   // Dialog
   ipcMain.handle('dialog:selectFolder', async () => {
     if (!mainWindow) throw new Error('No window available')
