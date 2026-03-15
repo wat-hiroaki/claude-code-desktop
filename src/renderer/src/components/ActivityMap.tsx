@@ -713,13 +713,6 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps) {
     return { positions: pos, teamSectors: sectors, wsClusterLabels: wsLabels }
   }, [activeAgents, teams, centerX, centerY, workspaceNameMap])
 
-  const stats = useMemo(() => {
-    const total = activeAgents.length
-    const active = activeAgents.filter((a) => ['active', 'thinking', 'tool_running', 'awaiting'].includes(a.status)).length
-    const error = activeAgents.filter((a) => a.status === 'error').length
-    return { total, active, error, staleCli: staleSessionCount }
-  }, [activeAgents, staleSessionCount])
-
   // External CLI sessions (unmatched to any agent) — split active vs stale
   const { activeExternalSessions, staleSessionCount } = useMemo(() => {
     if (!agentTeamsData?.taskSessions.length) return { activeExternalSessions: [] as ClaudeTaskSession[], staleSessionCount: 0 }
@@ -732,6 +725,13 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps) {
     const stale = unmatched.length - active.length
     return { activeExternalSessions: active, staleSessionCount: stale }
   }, [agentTeamsData, agents])
+
+  const stats = useMemo(() => {
+    const total = activeAgents.length
+    const active = activeAgents.filter((a) => ['active', 'thinking', 'tool_running', 'awaiting'].includes(a.status)).length
+    const error = activeAgents.filter((a) => a.status === 'error').length
+    return { total, active, error, staleCli: staleSessionCount }
+  }, [activeAgents, staleSessionCount])
 
   // Positions for active external sessions on outer ring
   const externalPositions = useMemo(() => {
