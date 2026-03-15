@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import type { ConfigNode } from '@shared/types'
 
 interface ConfigMapNodeProps {
@@ -10,6 +9,7 @@ interface ConfigMapNodeProps {
   isConflicted: boolean
   isSelected: boolean
   onClick: (node: ConfigNode) => void
+  onHoverChange?: (node: ConfigNode | null) => void
 }
 
 interface CyberPalette {
@@ -58,8 +58,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   settings: '\u2699'    // ⚙ Settings
 }
 
-export function ConfigMapNode({ node, x, y, palette, isConflicted, isSelected, onClick }: ConfigMapNodeProps): JSX.Element {
-  const { t } = useTranslation()
+export function ConfigMapNode({ node, x, y, palette, isConflicted, isSelected, onClick, onHoverChange }: ConfigMapNodeProps): JSX.Element {
   const [hovered, setHovered] = useState(false)
 
   const categoryColor = (CATEGORY_COLORS[node.category] ?? (() => palette.accent))(palette)
@@ -72,8 +71,8 @@ export function ConfigMapNode({ node, x, y, palette, isConflicted, isSelected, o
       transform={`translate(${x}, ${y})`}
       style={{ cursor: 'pointer' }}
       onClick={() => onClick(node)}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={() => { setHovered(true); onHoverChange?.(node) }}
+      onMouseLeave={() => { setHovered(false); onHoverChange?.(null) }}
     >
       {/* Glow ring */}
       {(isSelected || hovered) && (
@@ -164,38 +163,6 @@ export function ConfigMapNode({ node, x, y, palette, isConflicted, isSelected, o
         {node.level}
       </text>
 
-      {/* Tooltip on hover */}
-      {hovered && (
-        <g>
-          <rect
-            x={nodeRadius + 10}
-            y={-40}
-            width={180}
-            height={72}
-            rx={4}
-            fill={palette.panelBg}
-            stroke={palette.panelBorder}
-            strokeWidth={1}
-          />
-          <text x={nodeRadius + 18} y={-24} fontSize={8} fill={palette.textMain} className="font-mono" fontWeight="bold">
-            {node.label}
-          </text>
-          <text x={nodeRadius + 18} y={-12} fontSize={7} fill={palette.textMuted} className="font-mono">
-            {t('configMap.category.' + node.category)} / {node.level}
-          </text>
-          <text x={nodeRadius + 18} y={0} fontSize={7} fill={palette.textMuted} className="font-mono">
-            {node.lineCount > 0 ? `${node.lineCount} lines` : ''} {node.sizeBytes > 0 ? `(${(node.sizeBytes / 1024).toFixed(1)}KB)` : ''}
-          </text>
-          <text x={nodeRadius + 18} y={12} fontSize={6.5} fill={palette.textMuted} className="font-mono" opacity={0.7}>
-            {node.preview.slice(0, 60).replace(/\n/g, ' ')}
-          </text>
-          {isConflicted && (
-            <text x={nodeRadius + 18} y={24} fontSize={7} fill={palette.red} className="font-mono">
-              {t('configMap.conflictWarning')}
-            </text>
-          )}
-        </g>
-      )}
     </g>
   )
 }

@@ -200,6 +200,8 @@ export function ConfigMap({ workspaces }: ConfigMapProps): JSX.Element {
   const [data, setData] = useState<ConfigMapData | null>(null)
   const [loading, setLoading] = useState(false)
   const [selectedNode, setSelectedNode] = useState<ConfigNode | null>(null)
+  const [hoveredNode, setHoveredNode] = useState<ConfigNode | null>(null)
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
 
   // Pan/zoom
   const [pan, setPan] = useState({ x: 0, y: 0 })
@@ -274,6 +276,18 @@ export function ConfigMap({ workspaces }: ConfigMapProps): JSX.Element {
   const handlePointerUp = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
     isDragging.current = false
     e.currentTarget.releasePointerCapture(e.pointerId)
+  }, [])
+
+  // Tooltip: track mouse position relative to container
+  const handleContainerMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (hoveredNode && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect()
+      setTooltipPos({ x: e.clientX - rect.left + 16, y: e.clientY - rect.top - 10 })
+    }
+  }, [hoveredNode])
+
+  const handleNodeHoverChange = useCallback((node: ConfigNode | null) => {
+    setHoveredNode(node)
   }, [])
 
   // Zoom controls
@@ -397,6 +411,7 @@ export function ConfigMap({ workspaces }: ConfigMapProps): JSX.Element {
             backgroundColor: palette.bg,
             borderColor: palette.panelBorder
           }}
+          onMouseMove={handleContainerMouseMove}
         >
           {/* Grid background */}
           <div
@@ -592,6 +607,7 @@ export function ConfigMap({ workspaces }: ConfigMapProps): JSX.Element {
                     isConflicted={conflictedNodeIds.has(node.id)}
                     isSelected={selectedNode?.id === node.id}
                     onClick={handleNodeClick}
+                    onHoverChange={handleNodeHoverChange}
                   />
                 )
               })}
@@ -615,6 +631,48 @@ export function ConfigMap({ workspaces }: ConfigMapProps): JSX.Element {
               style={{ backgroundColor: palette.panelBg, border: `1px solid ${palette.panelBorder}`, color: palette.textMuted }}
             >
               {data.nodes.length} {t('configMap.nodes')} / {data.edges.length} {t('configMap.edges')}
+            </div>
+          )}
+
+          {/* Hover tooltip (HTML overlay, always on top) */}
+          {hoveredNode && (
+            <div
+              className="absolute pointer-events-none font-mono"
+              style={{
+                left: tooltipPos.x,
+                top: tooltipPos.y,
+                zIndex: 50,
+                backgroundColor: palette.panelBg,
+                border: `1px solid ${palette.panelBorder}`,
+                borderRadius: 6,
+                padding: '8px 10px',
+                maxWidth: 220,
+                backdropFilter: 'blur(8px)',
+                transform: 'translateY(-100%)'
+              }}
+            >
+              <div className="text-[11px] font-bold mb-1" style={{ color: palette.textMain }}>
+                {hoveredNode.label}
+              </div>
+              <div className="text-[10px] mb-0.5" style={{ color: palette.textMuted }}>
+                {t('configMap.category.' + hoveredNode.category)} / {hoveredNode.level}
+              </div>
+              {(hoveredNode.lineCount > 0 || hoveredNode.sizeBytes > 0) && (
+                <div className="text-[10px] mb-0.5" style={{ color: palette.textMuted }}>
+                  {hoveredNode.lineCount > 0 ? `${hoveredNode.lineCount} lines` : ''}
+                  {hoveredNode.sizeBytes > 0 ? ` (${(hoveredNode.sizeBytes / 1024).toFixed(1)}KB)` : ''}
+                </div>
+              )}
+              {hoveredNode.preview && (
+                <div className="text-[9px] mt-1 opacity-70 line-clamp-2" style={{ color: palette.textMuted }}>
+                  {hoveredNode.preview.slice(0, 80).replace(/\n/g, ' ')}
+                </div>
+              )}
+              {conflictedNodeIds.has(hoveredNode.id) && (
+                <div className="text-[10px] mt-1 font-bold" style={{ color: palette.red }}>
+                  {t('configMap.conflictWarning')}
+                </div>
+              )}
             </div>
           )}
 
