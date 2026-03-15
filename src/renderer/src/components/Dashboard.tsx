@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '../stores/useAppStore'
 import {
@@ -11,8 +11,9 @@ import { ActivityMap } from './ActivityMap'
 import { ChainGraph } from './ChainGraph'
 import { ActivityStream } from './ActivityStream'
 import { ScheduledTasksPanel } from './ScheduledTasksPanel'
-import { ConfigMap } from './ConfigMap'
 import type { Team, Workspace } from '@shared/types'
+
+const LazyConfigMap = lazy(() => import('./ConfigMap').then(m => ({ default: m.ConfigMap })))
 
 type DashboardView = 'activityMap' | 'chainGraph' | 'scheduler' | 'configMap'
 
@@ -232,7 +233,11 @@ export function Dashboard({ onOpenScanner, fullHeight }: DashboardProps): JSX.El
         )}
         {dashboardActiveView === 'chainGraph' && <ChainGraph onAgentClick={handleAgentClick} />}
         {dashboardActiveView === 'scheduler' && <ScheduledTasksPanel />}
-        {dashboardActiveView === 'configMap' && <ConfigMap workspaces={workspaces} />}
+        {dashboardActiveView === 'configMap' && (
+          <Suspense fallback={<div className="flex items-center justify-center h-40 text-muted-foreground text-xs">Loading...</div>}>
+            <LazyConfigMap workspaces={workspaces} />
+          </Suspense>
+        )}
       </div>
 
       {showDailyReport && (
