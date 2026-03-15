@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Minus, Maximize } from 'lucide-react'
+import { Plus, Minus, Maximize, GripHorizontal } from 'lucide-react'
 import { useAppStore } from '../stores/useAppStore'
 import { ConfigMapNode } from './ConfigMapNode'
 import { ConfigMapDetailPanel } from './ConfigMapDetailPanel'
@@ -203,6 +203,9 @@ export function ConfigMap({ workspaces }: ConfigMapProps): JSX.Element {
   const [hoveredNode, setHoveredNode] = useState<ConfigNode | null>(null)
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
 
+  // Map height (resizable)
+  const [mapHeight, setMapHeight] = useState(500)
+
   // Pan/zoom
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [scale, setScale] = useState(1)
@@ -363,7 +366,7 @@ export function ConfigMap({ workspaces }: ConfigMapProps): JSX.Element {
     return (
       <div
         className="w-full flex items-center justify-center border overflow-hidden font-mono relative rounded-md"
-        style={{ backgroundColor: palette.bg, borderColor: palette.panelBorder, height: '500px' }}
+        style={{ backgroundColor: palette.bg, borderColor: palette.panelBorder, height: `${mapHeight}px` }}
       >
         <div className="text-sm tracking-widest opacity-50 flex flex-col items-center" style={{ color: palette.textMuted }}>
           <span className="mb-2 uppercase">[ {t('configMap.noWorkspace')} ]</span>
@@ -378,7 +381,7 @@ export function ConfigMap({ workspaces }: ConfigMapProps): JSX.Element {
     return (
       <div
         className="w-full flex items-center justify-center border overflow-hidden font-mono relative rounded-md"
-        style={{ backgroundColor: palette.bg, borderColor: palette.panelBorder, height: '500px' }}
+        style={{ backgroundColor: palette.bg, borderColor: palette.panelBorder, height: `${mapHeight}px` }}
       >
         <span className="animate-pulse tracking-widest" style={{ color: palette.cyan }}>
           SCANNING CONFIG...
@@ -388,7 +391,8 @@ export function ConfigMap({ workspaces }: ConfigMapProps): JSX.Element {
   }
 
   return (
-    <div className="flex w-full" style={{ height: '500px' }}>
+    <div className="group">
+    <div className="flex w-full" style={{ height: `${mapHeight}px` }}>
       {/* Main SVG area */}
       <div className="flex-1 min-w-0 flex flex-col">
         {/* Conflict summary bar */}
@@ -746,6 +750,31 @@ export function ConfigMap({ workspaces }: ConfigMapProps): JSX.Element {
           onClose={() => setSelectedNode(null)}
         />
       )}
+    </div>
+
+    {/* Field Size Adjust Handle */}
+    <div
+      className="w-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-ns-resize py-1"
+      onPointerDown={(e) => {
+        e.preventDefault()
+        const startY = e.clientY
+        const startHeight = mapHeight
+        const onMove = (me: PointerEvent): void => {
+          const delta = me.clientY - startY
+          setMapHeight(Math.max(300, Math.min(startHeight + delta, 1200)))
+        }
+        const onUp = (): void => {
+          window.removeEventListener('pointermove', onMove)
+          window.removeEventListener('pointerup', onUp)
+        }
+        window.addEventListener('pointermove', onMove)
+        window.addEventListener('pointerup', onUp)
+      }}
+    >
+      <div className="h-1.5 w-16 rounded-full flex items-center justify-center" style={{ backgroundColor: `${palette.gray}80` }}>
+        <GripHorizontal size={10} style={{ color: palette.textMuted }} />
+      </div>
+    </div>
     </div>
   )
 }
