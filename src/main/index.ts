@@ -1065,6 +1065,9 @@ app.whenReady().then(() => {
       } else {
         await sessionManager.sendInput(agentId, message)
       }
+    },
+    (event) => {
+      mainWindow?.webContents.send('chain:event', event)
     }
   )
 

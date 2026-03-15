@@ -300,6 +300,16 @@ export function App(): JSX.Element {
       useAppStore.getState().setAgentMemoryBulk(data)
     })
 
+    const unsubChain = window.api.onChainEvent((event) => {
+      if (event.status === 'fired') {
+        useAppStore.getState().addChainFlow({
+          fromAgentId: event.fromAgentId,
+          toAgentId: event.toAgentId,
+          chainName: event.chainName
+        })
+      }
+    })
+
     // Listen for OS theme changes (when theme is 'system')
     const mql = window.matchMedia('(prefers-color-scheme: dark)')
     const handleSystemTheme = (e: MediaQueryListEvent): void => {
@@ -321,6 +331,7 @@ export function App(): JSX.Element {
       unsubStatus()
       unsubNotification()
       unsubMemory()
+      unsubChain()
       mql.removeEventListener('change', handleSystemTheme)
       clearInterval(statsInterval)
     }

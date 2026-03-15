@@ -4,7 +4,7 @@ import { getInitials } from '../lib/status'
 import { PtyTerminalView } from './PtyTerminalView'
 import { TerminalView } from './TerminalView'
 import { Composer } from './Composer'
-import { X, GripHorizontal, Maximize2, Pencil, Check } from 'lucide-react'
+import { X, GripHorizontal, Maximize2, Pencil, Check, ChevronDown, ChevronUp, RotateCw, Square, Cpu, Clock } from 'lucide-react'
 import type { Agent, AgentStatus, Team, Workspace } from '@shared/types'
 
 interface ActivityMapProps {
@@ -400,7 +400,7 @@ function CyberSectorLabel({ team, startAngle, endAngle, cx, cy, radius, palette 
 // MAIN EXPORT
 // ---------------------------------------------------------
 export function ActivityMap({ teams, onAgentClick }: ActivityMapProps) {
-  const { agents, usePtyMode, updateAgentInList, agentMemory } = useAppStore()
+  const { agents, usePtyMode, updateAgentInList, agentMemory, activeChainFlows } = useAppStore()
   const palette = useCyberPalette()
   const statusTheme = useMemo(() => getStatusTheme(palette), [palette])
 
@@ -432,6 +432,9 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps) {
 
   // Cockpit view state
   const [cockpitAgentId, setCockpitAgentId] = useState<string | null>(null)
+
+  // Cockpit terminal collapse state
+  const [terminalCollapsed, setTerminalCollapsed] = useState(false)
 
   // Agent rename state
   const [isRenaming, setIsRenaming] = useState(false)
@@ -591,6 +594,40 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps) {
             ))}
 
             <DataStreams agents={activeAgents} positions={positions} palette={palette} statusTheme={statusTheme} />
+
+            {/* Chain Flow Animations */}
+            {activeChainFlows.map((flow) => {
+              const from = positions.get(flow.fromAgentId)
+              const to = positions.get(flow.toAgentId)
+              if (!from || !to) return null
+              const progress = Math.min((Date.now() - flow.firedAt) / 4000, 1)
+              const opacity = progress < 0.8 ? 1 : (1 - progress) * 5
+              return (
+                <g key={flow.id} opacity={opacity}>
+                  {/* Glowing path */}
+                  <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke={palette.cyan} strokeWidth={2.5} opacity={0.6} filter="url(#cyber-glow)" />
+                  <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke={palette.cyan} strokeWidth={1} strokeDasharray="8 4" opacity={0.9}>
+                    <animate attributeName="stroke-dashoffset" from="24" to="0" dur="0.6s" repeatCount="indefinite" />
+                  </line>
+                  {/* Traveling pulse */}
+                  <circle r={4} fill={palette.cyan} filter="url(#cyber-glow)">
+                    <animateMotion dur="0.8s" repeatCount="indefinite" path={`M${from.x},${from.y} L${to.x},${to.y}`} />
+                  </circle>
+                  {/* Chain name label at midpoint */}
+                  <text
+                    x={(from.x + to.x) / 2}
+                    y={(from.y + to.y) / 2 - 8}
+                    textAnchor="middle"
+                    className="font-mono text-[7px] font-bold uppercase"
+                    fill={palette.cyan}
+                    style={{ userSelect: 'none' }}
+                  >
+                    CHAIN: {flow.chainName.slice(0, 15)}
+                  </text>
+                </g>
+              )
+            })}
+
             <SystemCore cx={centerX} cy={centerY} stats={stats} palette={palette} />
 
             {activeAgents.map((agent) => {
@@ -674,8 +711,69 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps) {
                 </button>
               </div>
             </div>
-            {/* Terminal Area (PtyTerminalView includes its own Composer) */}
-            <div className="flex-1 min-h-0 bg-black relative p-2">
+            {/* Status Panel */}
+            <div className="shrink-0 border-b px-3 py-2 grid grid-cols-2 gap-x-4 gap-y-1" style={{ borderColor: palette.cockpitBorder, backgroundColor: palette.cockpitHeaderBg }}>
+              <div className="flex items-center gap-1.5">
+                <Cpu size={10} style={{ color: palette.textMuted }} />
+                <span className="font-mono text-[10px]" style={{ color: palette.textMuted }}>MEM</span>
+                <span className="font-mono text-[10px] font-medium" style={{ color: (agentMemory.get(cockpitAgent.id) || 0) > 2048 ? palette.red : (agentMemory.get(cockpitAgent.id) || 0) > 1024 ? palette.orange : palette.textMain }}>
+                  {(() => { const mb = agentMemory.get(cockpitAgent.id) || 0; return mb >= 1024 ? `${(mb / 1024).toFixed(1)}GB` : `${mb}MB` })()}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Clock size={10} style={{ color: palette.textMuted }} />
+                <span className="font-mono text-[10px]" style={{ color: palette.textMuted }}>STATUS</span>
+                <span className="font-mono text-[10px] font-medium" style={{ color: statusTheme[cockpitAgent.status].color }}>
+                  {statusTheme[cockpitAgent.status].label}
+                </span>
+              </div>
+              {cockpitAgent.currentTask && (
+                <div className="col-span-2 flex items-center gap-1.5 mt-0.5">
+                  <span className="font-mono text-[10px]" style={{ color: palette.textMuted }}>TASK</span>
+                  <span className="font-mono text-[10px] truncate" style={{ color: palette.textMain }}>
+                    {cockpitAgent.currentTask.slice(0, 40)}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="shrink-0 flex items-center gap-1 px-3 py-1.5 border-b" style={{ borderColor: palette.cockpitBorder }}>
+              <button
+                onClick={async () => {
+                  await window.api.restartAgent(cockpitAgent.id)
+                }}
+                className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono hover:opacity-80 transition-opacity"
+                style={{ color: palette.cyan, backgroundColor: `${palette.cyan}15` }}
+                title="Restart"
+              >
+                <RotateCw size={10} /> RESTART
+              </button>
+              <button
+                onClick={async () => {
+                  await window.api.archiveAgent(cockpitAgent.id)
+                  setCockpitAgentId(null)
+                }}
+                className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono hover:opacity-80 transition-opacity"
+                style={{ color: palette.red, backgroundColor: `${palette.red}15` }}
+                title="Stop"
+              >
+                <Square size={10} /> STOP
+              </button>
+              <div className="ml-auto">
+                <button
+                  onClick={() => setTerminalCollapsed(v => !v)}
+                  className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono hover:opacity-80 transition-opacity"
+                  style={{ color: palette.textMuted }}
+                >
+                  {terminalCollapsed ? <ChevronDown size={10} /> : <ChevronUp size={10} />}
+                  {terminalCollapsed ? 'EXPAND' : 'COLLAPSE'}
+                </button>
+              </div>
+            </div>
+
+            {/* Terminal Area (collapsible) */}
+            <div className={`flex-1 min-h-0 bg-black relative p-2 ${terminalCollapsed ? 'hidden' : ''}`}>
               {usePtyMode ? (
                 <PtyTerminalView agentId={cockpitAgent.id} compact />
               ) : (

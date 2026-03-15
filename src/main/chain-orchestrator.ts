@@ -1,3 +1,4 @@
+import { existsSync } from 'fs'
 import type { Database } from './database'
 import type { AgentStatus, TaskChain, Agent } from '@shared/types'
 
@@ -11,11 +12,24 @@ function stripAnsi(str: string): string {
  * ChainOrchestrator watches agent status changes and triggers
  * task chains when conditions are met.
  */
+export interface ChainEvent {
+  chainId: string
+  chainName: string
+  fromAgentId: string
+  toAgentId: string
+  status: 'fired' | 'completed' | 'error'
+  message?: string
+  timestamp: string
+}
+
+type ChainEventCallback = (event: ChainEvent) => void
+
 export class ChainOrchestrator {
   private database: Database
   private startTargetSession: (agent: Agent) => Promise<void>
   private sendTargetInput: (agentId: string, message: string) => Promise<void>
-  
+  private onChainEvent: ChainEventCallback
+
   /** Last output content per agent, used for keyword matching and {prev_result} */
   private lastOutputByAgent: Map<string, string> = new Map()
   private ptyBufferByAgent: Map<string, string> = new Map()
@@ -23,11 +37,25 @@ export class ChainOrchestrator {
   constructor(
     database: Database,
     startTargetSession: (agent: Agent) => Promise<void>,
-    sendTargetInput: (agentId: string, message: string) => Promise<void>
+    sendTargetInput: (agentId: string, message: string) => Promise<void>,
+    onChainEvent?: ChainEventCallback
   ) {
     this.database = database
     this.startTargetSession = startTargetSession
     this.sendTargetInput = sendTargetInput
+    this.onChainEvent = onChainEvent ?? (() => {})
+  }
+
+  private emitChainEvent(chain: TaskChain, fromAgentId: string, status: ChainEvent['status'], message?: string): void {
+    this.onChainEvent({
+      chainId: chain.id,
+      chainName: chain.name,
+      fromAgentId,
+      toAgentId: chain.targetAgentId,
+      status,
+      message,
+      timestamp: new Date().toISOString()
+    })
   }
 
   /**
@@ -134,7 +162,6 @@ export class ChainOrchestrator {
 
     // Check if target agent's project path exists
     try {
-      const { existsSync } = require('fs')
       if (targetAgent.projectPath && !existsSync(targetAgent.projectPath)) {
         this.handleChainError(chain, `Target path not found: ${targetAgent.projectPath}. The workspace folder may have been renamed or moved.`)
         return
@@ -154,8 +181,13 @@ export class ChainOrchestrator {
       project_path: targetAgent.projectPath
     })
 
-    this.sendToTarget(chain, message).catch((err: unknown) => {
+    this.emitChainEvent(chain, triggerAgentId, 'fired', message.slice(0, 100))
+
+    this.sendToTarget(chain, message).then(() => {
+      this.emitChainEvent(chain, triggerAgentId, 'completed')
+    }).catch((err: unknown) => {
       const errorMessage = err instanceof Error ? err.message : String(err)
+      this.emitChainEvent(chain, triggerAgentId, 'error', errorMessage)
       this.handleChainError(chain, errorMessage)
     })
   }

@@ -54,6 +54,13 @@ const api: ElectronAPI = {
     return () => ipcRenderer.removeListener('memory:update', handler)
   },
 
+  // Chain events
+  onChainEvent: (callback: (event: { chainId: string; chainName: string; fromAgentId: string; toAgentId: string; status: string; message?: string; timestamp: string }) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: Parameters<typeof callback>[0]) => callback(data)
+    ipcRenderer.on('chain:event', handler)
+    return () => ipcRenderer.removeListener('chain:event', handler)
+  },
+
   // Dialog
   selectFolder: () => ipcRenderer.invoke('dialog:selectFolder'),
 

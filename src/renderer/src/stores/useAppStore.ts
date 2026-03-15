@@ -64,6 +64,11 @@ interface AppState {
   theme: 'dark' | 'light' | 'system'
   setTheme: (theme: 'dark' | 'light' | 'system') => void
 
+  // Chain flow visualization
+  activeChainFlows: Array<{ id: string; fromAgentId: string; toAgentId: string; chainName: string; firedAt: number }>
+  addChainFlow: (flow: { fromAgentId: string; toAgentId: string; chainName: string }) => void
+  removeChainFlow: (id: string) => void
+
   // Memory monitoring
   agentMemory: Map<string, number>
   setAgentMemory: (agentId: string, memoryMB: number) => void
@@ -204,6 +209,24 @@ export const useAppStore = create<AppState>((set) => ({
     window.api?.updateSettings({ usePtyMode: use })
     set({ usePtyMode: use })
   },
+
+  // Chain flow visualization
+  activeChainFlows: [],
+  addChainFlow: (flow) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+    set((state) => ({
+      activeChainFlows: [...state.activeChainFlows, { ...flow, id, firedAt: Date.now() }]
+    }))
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+      set((state) => ({
+        activeChainFlows: state.activeChainFlows.filter(f => f.id !== id)
+      }))
+    }, 4000)
+  },
+  removeChainFlow: (id) => set((state) => ({
+    activeChainFlows: state.activeChainFlows.filter(f => f.id !== id)
+  })),
 
   // Memory monitoring
   agentMemory: new Map(),
