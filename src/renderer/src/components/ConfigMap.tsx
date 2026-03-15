@@ -99,8 +99,17 @@ export function ConfigMap({ workspaces }: ConfigMapProps): JSX.Element {
   const resolved = useResolvedTheme()
   const palette = resolved === 'dark' ? cyberPaletteDark : cyberPaletteLight
 
-  const { activeWorkspaceId } = useAppStore()
+  const { activeWorkspaceId, agents, selectedAgentId } = useAppStore()
   const activeWorkspace = workspaces.find(w => w.id === activeWorkspaceId)
+
+  // Resolve project path: workspace path > selected agent's project > first agent's project
+  const resolvedPath = useMemo(() => {
+    if (activeWorkspace) return activeWorkspace.path
+    const selected = agents.find(a => a.id === selectedAgentId)
+    if (selected?.projectPath) return selected.projectPath
+    const firstActive = agents.find(a => a.status !== 'archived' && a.projectPath)
+    return firstActive?.projectPath || null
+  }, [activeWorkspace, agents, selectedAgentId])
 
   const [data, setData] = useState<ConfigMapData | null>(null)
   const [loading, setLoading] = useState(false)
@@ -118,15 +127,15 @@ export function ConfigMap({ workspaces }: ConfigMapProps): JSX.Element {
   const cx = svgWidth / 2
   const cy = svgHeight / 2
 
-  // Load data when workspace changes
+  // Load data when resolved path changes
   useEffect(() => {
-    if (!activeWorkspace) {
+    if (!resolvedPath) {
       setData(null)
       return
     }
     let cancelled = false
     setLoading(true)
-    window.api.getConfigMapData(activeWorkspace.path).then((result) => {
+    window.api.getConfigMapData(resolvedPath).then((result) => {
       if (!cancelled) {
         setData(result)
         setLoading(false)
@@ -138,7 +147,7 @@ export function ConfigMap({ workspaces }: ConfigMapProps): JSX.Element {
       if (!cancelled) setLoading(false)
     })
     return () => { cancelled = true }
-  }, [activeWorkspace])
+  }, [resolvedPath])
 
   // Wheel zoom
   useEffect(() => {
@@ -208,8 +217,8 @@ export function ConfigMap({ workspaces }: ConfigMapProps): JSX.Element {
     setSelectedNode(prev => prev?.id === node.id ? null : node)
   }, [])
 
-  // No workspace selected
-  if (!activeWorkspace) {
+  // No project path resolved
+  if (!resolvedPath) {
     return (
       <div
         className="w-full flex items-center justify-center border overflow-hidden font-mono relative rounded-md"
