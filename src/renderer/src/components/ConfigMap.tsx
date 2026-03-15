@@ -243,6 +243,7 @@ export function ConfigMap({ workspaces }: ConfigMapProps): JSX.Element {
 
   // Wheel zoom (Ctrl/Cmd + wheel only, matching ActivityMap)
   // Attach to the container div to catch events before they reach the browser zoom handler
+  // Re-attach when data/loading changes since containerRef may not exist during loading state
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
@@ -256,7 +257,7 @@ export function ConfigMap({ workspaces }: ConfigMapProps): JSX.Element {
     }
     el.addEventListener('wheel', handleWheel, { passive: false })
     return () => el.removeEventListener('wheel', handleWheel)
-  }, [])
+  }, [data, loading])
 
   // Pan handlers
   const handlePointerDown = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
@@ -682,8 +683,8 @@ export function ConfigMap({ workspaces }: ConfigMapProps): JSX.Element {
 
           {/* Zoom controls */}
           <div
-            className="absolute bottom-2 right-2 flex flex-col gap-1"
-            style={{ zIndex: 10 }}
+            className="absolute bottom-2 right-2 flex flex-col gap-1 pointer-events-auto"
+            style={{ zIndex: 20 }}
           >
             <button
               onClick={handleZoomIn}
