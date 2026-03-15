@@ -127,6 +127,7 @@ export interface Broadcast {
 export interface Workspace {
   id: string
   name: string
+  path: string
   color: string
   connectionType: 'local' | 'ssh'
   sshConfig?: {
@@ -143,6 +144,7 @@ export interface Workspace {
 
 export interface CreateWorkspaceParams {
   name: string
+  path: string
   color?: string
   connectionType: 'local' | 'ssh'
   sshConfig?: Workspace['sshConfig']
@@ -392,6 +394,9 @@ export interface ElectronAPI {
   clearDiagnostics: () => Promise<void>
   setDiagnosticsEnabled: (enabled: boolean) => Promise<void>
   isDiagnosticsEnabled: () => Promise<boolean>
+
+  // Workspace path events
+  onWorkspacePathInvalid: (callback: (workspaceIds: string[]) => void) => () => void
 }
 
 export type LogLevel = 'info' | 'warn' | 'error' | 'fatal'

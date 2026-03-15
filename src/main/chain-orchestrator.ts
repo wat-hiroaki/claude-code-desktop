@@ -132,6 +132,15 @@ export class ChainOrchestrator {
       return
     }
 
+    // Check if target agent's project path exists
+    try {
+      const { existsSync } = require('fs')
+      if (targetAgent.projectPath && !existsSync(targetAgent.projectPath)) {
+        this.handleChainError(chain, `Target path not found: ${targetAgent.projectPath}. The workspace folder may have been renamed or moved.`)
+        return
+      }
+    } catch { /* fs check failed, continue anyway */ }
+
     // If the target agent is in error/archived state, respect onError
     if (targetAgent.status === 'archived') {
       this.handleChainError(chain, `Target agent "${targetAgent.name}" is archived`)

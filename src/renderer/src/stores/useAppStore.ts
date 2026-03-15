@@ -51,6 +51,8 @@ interface AppState {
   // Workspace
   activeWorkspaceId: string | null
   setActiveWorkspaceId: (id: string | null) => void
+  invalidWorkspaceIds: string[]
+  setInvalidWorkspaceIds: (ids: string[]) => void
 
   // Terminal mode
   usePtyMode: boolean
@@ -183,6 +185,8 @@ export const useAppStore = create<AppState>((set) => ({
   // Workspace
   activeWorkspaceId: null,
   setActiveWorkspaceId: (id) => set({ activeWorkspaceId: id }),
+  invalidWorkspaceIds: [],
+  setInvalidWorkspaceIds: (ids) => set({ invalidWorkspaceIds: ids }),
 
   // Terminal mode
   usePtyMode: localStorage.getItem('usePtyMode') !== 'false',

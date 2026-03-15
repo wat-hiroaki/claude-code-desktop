@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '../stores/useAppStore'
 import { cn } from '../lib/utils'
-import { ChevronDown, Plus, Laptop, Server, Pencil, Trash2, Check, X } from 'lucide-react'
+import { ChevronDown, Plus, Laptop, Server, Pencil, Trash2, Check, X, AlertTriangle, FolderOpen } from 'lucide-react'
 import { CreateWorkspaceDialog } from './CreateWorkspaceDialog'
 import { showToast } from './ToastContainer'
 import type { Workspace } from '@shared/types'
@@ -22,7 +22,7 @@ export function WorkspaceSwitcher({ className }: WorkspaceSwitcherProps): JSX.El
   const [editName, setEditName] = useState('')
   const [editColor, setEditColor] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const { activeWorkspaceId, setActiveWorkspaceId } = useAppStore()
+  const { activeWorkspaceId, setActiveWorkspaceId, invalidWorkspaceIds, setInvalidWorkspaceIds } = useAppStore()
 
   const loadWorkspaces = useCallback(async () => {
     const ws = await window.api.getWorkspaces()
@@ -32,6 +32,14 @@ export function WorkspaceSwitcher({ className }: WorkspaceSwitcherProps): JSX.El
   useEffect(() => {
     loadWorkspaces()
   }, [loadWorkspaces])
+
+  // Listen for workspace path invalid events from main process
+  useEffect(() => {
+    const unsub = window.api.onWorkspacePathInvalid((ids) => {
+      setInvalidWorkspaceIds(ids)
+    })
+    return unsub
+  }, [setInvalidWorkspaceIds])
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -94,6 +102,26 @@ export function WorkspaceSwitcher({ className }: WorkspaceSwitcherProps): JSX.El
       showToast(err instanceof Error ? err.message : String(err), 'error')
     }
   }
+
+  const handleRelinkPath = async (ws: Workspace, e: React.MouseEvent): Promise<void> => {
+    e.stopPropagation()
+    try {
+      const newPath = await window.api.selectFolder()
+      if (!newPath) return
+      await window.api.updateWorkspace(ws.id, { path: newPath })
+      // Remove from invalid list
+      setInvalidWorkspaceIds(invalidWorkspaceIds.filter(id => id !== ws.id))
+      await loadWorkspaces()
+      showToast(
+        t('toast.workspaceRelinked', 'Workspace "{{name}}" path updated. Agent paths have been updated automatically.', { name: ws.name }),
+        'success'
+      )
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : String(err), 'error')
+    }
+  }
+
+  const isInvalid = (wsId: string): boolean => invalidWorkspaceIds.includes(wsId)
 
   return (
     <div ref={dropdownRef} className={cn('relative', className)}>
@@ -183,7 +211,8 @@ export function WorkspaceSwitcher({ className }: WorkspaceSwitcherProps): JSX.El
                         onClick={() => handleSelect(ws.id)}
                         className={cn(
                           'flex items-center gap-2 flex-1 px-3 py-2 text-sm hover:bg-muted/50 transition-colors',
-                          activeWorkspaceId === ws.id && 'bg-primary/10'
+                          activeWorkspaceId === ws.id && 'bg-primary/10',
+                          isInvalid(ws.id) && 'opacity-70'
                         )}
                       >
                         <div
@@ -191,11 +220,25 @@ export function WorkspaceSwitcher({ className }: WorkspaceSwitcherProps): JSX.El
                           style={{ backgroundColor: ws.color }}
                         />
                         <span className="truncate flex-1 text-left">{ws.name}</span>
+                        {isInvalid(ws.id) && (
+                          <span title={t('workspace.pathInvalid', 'Workspace folder not found')}>
+                            <AlertTriangle size={12} className="text-amber-400 shrink-0" />
+                          </span>
+                        )}
                         {ws.connectionType === 'ssh' && (
                           <Server size={12} className="text-muted-foreground" />
                         )}
                       </button>
                       <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity pr-2">
+                        {isInvalid(ws.id) && (
+                          <button
+                            onClick={(e) => handleRelinkPath(ws, e)}
+                            className="p-1 rounded hover:bg-accent text-amber-400"
+                            title={t('workspace.relinkPath', 'Re-link folder')}
+                          >
+                            <FolderOpen size={11} />
+                          </button>
+                        )}
                         <button
                           onClick={(e) => handleStartEdit(ws, e)}
                           className="p-1 rounded hover:bg-accent text-muted-foreground"

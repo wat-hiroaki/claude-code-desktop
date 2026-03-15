@@ -118,7 +118,8 @@ function AgentNode({ agent, x, y, onClick }: AgentNodeProps): JSX.Element {
         cx={x}
         cy={y}
         r={nodeRadius}
-        fill="rgba(13, 13, 26, 0.85)"
+        className="fill-card"
+        style={{ fill: 'hsl(var(--card))' }}
         stroke={statusFill[agent.status]}
         strokeWidth={hovered ? 3 : 2}
       />
@@ -145,7 +146,7 @@ function AgentNode({ agent, x, y, onClick }: AgentNodeProps): JSX.Element {
         y={y - 2}
         textAnchor="middle"
         dominantBaseline="middle"
-        className="fill-gray-200 text-[9px] font-mono font-bold"
+        className="fill-foreground text-[9px] font-mono font-bold"
         style={{ userSelect: 'none' }}
       >
         {getInitials(agent.name)}
@@ -157,7 +158,7 @@ function AgentNode({ agent, x, y, onClick }: AgentNodeProps): JSX.Element {
         y={y + 8}
         textAnchor="middle"
         dominantBaseline="middle"
-        className="fill-gray-400 text-[7px] font-mono"
+        className="fill-muted-foreground text-[7px] font-mono"
         style={{ userSelect: 'none' }}
       >
         {agent.name.length > 8 ? agent.name.slice(0, 7) + '..' : agent.name}
@@ -198,15 +199,14 @@ function AgentNode({ agent, x, y, onClick }: AgentNodeProps): JSX.Element {
           y={y - 40}
           width={160}
           height={110}
-          style={{ overflow: 'visible' }}
+          style={{ overflow: 'visible', zIndex: 100, position: 'relative' }}
         >
           <div
+            className="bg-card border shadow-lg"
             style={{
-              background: 'rgba(15, 15, 30, 0.95)',
-              border: `1px solid ${statusFill[agent.status]}40`,
+              borderColor: `${statusFill[agent.status]}40`,
               borderRadius: '8px',
               padding: '8px 10px',
-              color: '#e2e8f0',
               fontSize: '10px',
               fontFamily: 'monospace',
               lineHeight: '1.5',
@@ -217,20 +217,20 @@ function AgentNode({ agent, x, y, onClick }: AgentNodeProps): JSX.Element {
             <div style={{ fontWeight: 'bold', fontSize: '11px', marginBottom: '4px', color: statusFill[agent.status] }}>
               {agent.name}
             </div>
-            <div style={{ color: '#94a3b8' }}>
+            <div className="text-muted-foreground">
               Status: <span style={{ color: statusFill[agent.status] }}>{agent.status.toUpperCase()}</span>
             </div>
             {agent.workspaceId && (
-              <div style={{ color: '#94a3b8' }}>
-                Workspace: <span style={{ color: '#cbd5e1' }}>{agent.workspaceId.split('/').pop()}</span>
+              <div className="text-muted-foreground">
+                Workspace: <span className="text-foreground">{agent.workspaceId.split('/').pop()}</span>
               </div>
             )}
             {agent.currentTask && (
-              <div style={{ color: '#94a3b8', marginTop: '2px' }}>
-                Task: <span style={{ color: '#cbd5e1' }}>{agent.currentTask.slice(0, 40)}{agent.currentTask.length > 40 ? '...' : ''}</span>
+              <div className="text-muted-foreground mt-[2px]">
+                Task: <span className="text-foreground">{agent.currentTask.slice(0, 40)}{agent.currentTask.length > 40 ? '...' : ''}</span>
               </div>
             )}
-            <div style={{ color: '#64748b', fontSize: '9px', marginTop: '3px' }}>
+            <div className="text-muted-foreground opacity-70 text-[9px] mt-[3px]">
               Updated: {new Date(agent.updatedAt).toLocaleTimeString()}
             </div>
           </div>
@@ -336,7 +336,8 @@ function CentralHub({
         cx={centerX}
         cy={centerY}
         r={hubRadius}
-        fill="rgba(13, 13, 26, 0.9)"
+        className="fill-card"
+        style={{ fill: 'hsl(var(--card))' }}
         stroke="rgba(99, 102, 241, 0.4)"
         strokeWidth={1.5}
       />
@@ -472,8 +473,8 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps): JSX.Elem
   const { agents } = useAppStore()
   const activeAgents = agents.filter((a) => a.status !== 'archived')
 
-  const svgWidth = 600
-  const svgHeight = 300
+  const svgWidth = 400
+  const svgHeight = 200
   const centerX = svgWidth / 2
   const centerY = svgHeight / 2
 
@@ -520,12 +521,12 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps): JSX.Elem
   }
 
   return (
-    <div className="relative w-full overflow-hidden rounded-lg bg-[#0a0a18] border border-gray-800/50">
+    <div className="relative w-full overflow-hidden rounded-lg bg-card border border-border">
       {/* Scanline overlay */}
       <div
-        className="pointer-events-none absolute inset-0 z-10 opacity-[0.03]"
+        className="pointer-events-none absolute inset-0 z-10 opacity-[0.03] dark:opacity-[0.05]"
         style={{
-          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)'
+          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, currentColor 2px, currentColor 4px)'
         }}
       />
 
@@ -538,16 +539,16 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps): JSX.Elem
         {/* Background grid */}
         <defs>
           <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(99, 102, 241, 0.05)" strokeWidth="0.5" />
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" className="text-indigo-500/10" strokeWidth="0.5" />
           </pattern>
           <radialGradient id="center-glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="rgba(99, 102, 241, 0.08)" />
-            <stop offset="100%" stopColor="rgba(0, 0, 0, 0)" />
+            <stop offset="0%" stopColor="currentColor" className="text-indigo-500/50" stopOpacity={0.15} />
+            <stop offset="100%" stopColor="transparent" />
           </radialGradient>
         </defs>
 
         <rect width={svgWidth} height={svgHeight} fill="url(#grid)" />
-        <circle cx={centerX} cy={centerY} r={200} fill="url(#center-glow)" />
+        <circle cx={centerX} cy={centerY} r={150} fill="url(#center-glow)" />
 
         {/* Team sector labels */}
         {teamSectors.map((sector, i) => (

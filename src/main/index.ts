@@ -2,6 +2,7 @@ import { app, shell, BrowserWindow, ipcMain, Notification, Tray, Menu, nativeIma
 import { autoUpdater } from 'electron-updater'
 
 import { join } from 'path'
+import { existsSync } from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { SessionManager } from './session-manager'
 import { PtySessionManager } from './pty-session-manager'
@@ -547,6 +548,9 @@ function setupIPC(): void {
     const { dirname } = await import('path')
     let configPath: string
     if (scope === 'project' && projectPath) {
+      if (!existsSync(projectPath)) {
+        throw new Error(`Project path does not exist: ${projectPath}`)
+      }
       configPath = join(projectPath, '.mcp.json')
     } else {
       configPath = join(homedir(), '.claude', 'settings.json')
@@ -569,6 +573,9 @@ function setupIPC(): void {
 
   ipcMain.handle('config:saveClaudeMd', async (_event, projectPath: string, content: string) => {
     const { writeFileSync } = await import('fs')
+    if (!existsSync(projectPath)) {
+      throw new Error(`Project path does not exist: ${projectPath}`)
+    }
     const mdPath = join(projectPath, 'CLAUDE.md')
     writeFileSync(mdPath, content, 'utf-8')
   })
@@ -999,6 +1006,18 @@ app.whenReady().then(() => {
   setupDiagnosticsIPC()
   createWindow()
   createTray()
+
+  // Startup workspace path validation
+  const workspaces = database.getWorkspaces()
+  const invalidWorkspaces = workspaces.filter(ws =>
+    ws.connectionType === 'local' && ws.path && !existsSync(ws.path)
+  )
+  if (invalidWorkspaces.length > 0) {
+    // Wait a bit for window to be ready, then notify
+    setTimeout(() => {
+      mainWindow?.webContents.send('workspace:path-invalid', invalidWorkspaces.map(w => w.id))
+    }, 2000)
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

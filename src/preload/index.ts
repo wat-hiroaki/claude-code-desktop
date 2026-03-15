@@ -174,7 +174,16 @@ const api: ElectronAPI = {
   setDiagnosticsEnabled: (enabled: boolean) => ipcRenderer.invoke('diagnostics:setEnabled', enabled),
   isDiagnosticsEnabled: () => ipcRenderer.invoke('diagnostics:isEnabled'),
 
-  installUpdate: () => ipcRenderer.invoke('update:install')
+  installUpdate: () => ipcRenderer.invoke('update:install'),
+
+  // Workspace path events
+  onWorkspacePathInvalid: (callback: (workspaceIds: string[]) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, workspaceIds: string[]): void => {
+      callback(workspaceIds)
+    }
+    ipcRenderer.on('workspace:path-invalid', handler)
+    return () => ipcRenderer.removeListener('workspace:path-invalid', handler)
+  }
 }
 
 contextBridge.exposeInMainWorld('api', api)

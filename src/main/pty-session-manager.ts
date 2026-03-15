@@ -152,7 +152,10 @@ export class PtySessionManager {
           this.database.saveAllScrollbacks({ [agent.id]: session.scrollbackBuffer })
         }
         if (session._idleTimer) clearTimeout(session._idleTimer)
-        const status: AgentStatus = exitCode === 0 ? 'idle' : 'error'
+        const isKilled = !this.sessions.has(agent.id)
+        const isWindowsCtrlC = process.platform === 'win32' && exitCode === -1073741510
+        const isSuccess = exitCode === 0 || isKilled || isWindowsCtrlC
+        const status: AgentStatus = isSuccess ? 'idle' : 'error'
         this.database.updateAgent(agent.id, { status })
         this.onStatusChange(agent.id, status)
         this.onExit(agent.id, exitCode)

@@ -122,6 +122,22 @@ export class Database {
       raw.sessionScrollbacks = {}
     }
 
+    // Backfill workspace path from agent projectPaths
+    for (const ws of raw.workspaces as Record<string, unknown>[]) {
+      if (!ws.path) {
+        const agents = (raw.agents as Record<string, unknown>[]).filter(
+          (a) => a.workspaceId === ws.id
+        )
+        const pathCounts = new Map<string, number>()
+        for (const a of agents) {
+          const p = String(a.projectPath || '')
+          if (p) pathCounts.set(p, (pathCounts.get(p) || 0) + 1)
+        }
+        const sorted = [...pathCounts.entries()].sort((a, b) => b[1] - a[1])
+        ws.path = sorted[0]?.[0] ?? ''
+      }
+    }
+
     return raw as unknown as DBData
   }
 
@@ -391,6 +407,7 @@ export class Database {
     const workspace: Workspace = {
       id: uuidv4(),
       name: params.name,
+      path: params.path ?? '',
       color: params.color ?? '#748ffc',
       connectionType: params.connectionType,
       sshConfig: params.sshConfig,
@@ -411,7 +428,20 @@ export class Database {
   updateWorkspace(id: string, updates: Partial<Workspace>): Workspace {
     const ws = this.data.workspaces.find((w) => w.id === id)
     if (!ws) throw new Error(`Workspace ${id} not found`)
-    const allowedFields = ['name', 'color', 'connectionType', 'sshConfig', 'configStorageLocation', 'isActive']
+
+    // Detect path change and cascade to agents
+    if (updates.path && updates.path !== ws.path && ws.path) {
+      const oldPath = ws.path
+      const newPath = updates.path
+      for (const agent of this.data.agents) {
+        if (agent.workspaceId === id && agent.projectPath.startsWith(oldPath)) {
+          agent.projectPath = agent.projectPath.replace(oldPath, newPath)
+          agent.updatedAt = new Date().toISOString()
+        }
+      }
+    }
+
+    const allowedFields = ['name', 'path', 'color', 'connectionType', 'sshConfig', 'configStorageLocation', 'isActive']
     for (const [key, value] of Object.entries(updates)) {
       if (allowedFields.includes(key)) {
         ;(ws as unknown as Record<string, unknown>)[key] = value
