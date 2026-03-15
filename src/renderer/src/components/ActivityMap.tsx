@@ -1,12 +1,11 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
-import { useTranslation } from 'react-i18next'
 import { useAppStore } from '../stores/useAppStore'
 import { getInitials } from '../lib/status'
 import { PtyTerminalView } from './PtyTerminalView'
 import { TerminalView } from './TerminalView'
 import { Composer } from './Composer'
-import { X, GripHorizontal, Maximize2 } from 'lucide-react'
-import type { Agent, AgentStatus, Team } from '@shared/types'
+import { X, GripHorizontal, Maximize2, Pencil, Check } from 'lucide-react'
+import type { Agent, AgentStatus, Team, Workspace } from '@shared/types'
 
 interface ActivityMapProps {
   teams: Team[]
@@ -14,35 +13,85 @@ interface ActivityMapProps {
 }
 
 // ---------------------------------------------------------
-// CYBER/HUD THEME DEFINITIONS
+// CYBER/HUD THEME DEFINITIONS (Dual Palette)
 // ---------------------------------------------------------
-const cyberPalette = {
-  bg: '#09090b', // Deep zinc-950 for refined dark theme
-  accent: '#71717a', // Zinc-500
-  cyan: '#0ea5e9', // Sky blue for subtle tech feel
-  green: '#10b981', // Emerald
-  orange: '#f59e0b', // Amber
-  red: '#ef4444', // Red
-  purple: '#8b5cf6', // Violet
-  gray: '#52525b', // Zinc 600
-  darkGray: '#18181b', // Zinc 900
-  grid: '#18181b', // Very subtle grid
+const cyberPaletteDark = {
+  bg: '#09090b',
+  accent: '#71717a',
+  cyan: '#0ea5e9',
+  green: '#10b981',
+  orange: '#f59e0b',
+  red: '#ef4444',
+  purple: '#8b5cf6',
+  gray: '#52525b',
+  darkGray: '#18181b',
+  grid: '#18181b',
   textMain: '#fafafa',
-  textMuted: '#a1a1aa'
+  textMuted: '#a1a1aa',
+  panelBg: 'rgba(9, 9, 11, 0.9)',
+  panelBorder: 'rgba(82, 82, 91, 0.5)',
+  cockpitBg: '#09090b',
+  cockpitHeaderBg: 'rgba(24, 24, 27, 0.5)',
+  cockpitBorder: '#3f3f46'
+}
+
+const cyberPaletteLight = {
+  bg: '#f8fafc',
+  accent: '#64748b',
+  cyan: '#0284c7',
+  green: '#059669',
+  orange: '#d97706',
+  red: '#dc2626',
+  purple: '#7c3aed',
+  gray: '#94a3b8',
+  darkGray: '#e2e8f0',
+  grid: '#e2e8f0',
+  textMain: '#0f172a',
+  textMuted: '#64748b',
+  panelBg: 'rgba(255, 255, 255, 0.95)',
+  panelBorder: 'rgba(148, 163, 184, 0.5)',
+  cockpitBg: '#ffffff',
+  cockpitHeaderBg: 'rgba(241, 245, 249, 0.8)',
+  cockpitBorder: '#cbd5e1'
+}
+
+type CyberPalette = typeof cyberPaletteDark
+
+function useResolvedTheme(): 'dark' | 'light' {
+  const { theme } = useAppStore()
+  const [systemDark, setSystemDark] = useState(() =>
+    window.matchMedia('(prefers-color-scheme: dark)').matches
+  )
+  useEffect(() => {
+    if (theme !== 'system') return
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [theme])
+  if (theme === 'system') return systemDark ? 'dark' : 'light'
+  return theme
+}
+
+function useCyberPalette(): CyberPalette {
+  const resolved = useResolvedTheme()
+  return resolved === 'dark' ? cyberPaletteDark : cyberPaletteLight
 }
 
 type CyberStyle = { color: string; glow: string; label: string }
 
-const statusTheme: Record<AgentStatus, CyberStyle> = {
-  creating: { color: cyberPalette.gray, glow: 'rgba(82,82,91,0.4)', label: 'INIT' },
-  active: { color: cyberPalette.green, glow: 'rgba(16,185,129,0.4)', label: 'ACTIVE' },
-  thinking: { color: cyberPalette.cyan, glow: 'rgba(14,165,233,0.4)', label: 'COMPUTING' },
-  tool_running: { color: cyberPalette.orange, glow: 'rgba(245,158,11,0.4)', label: 'EXEC' },
-  awaiting: { color: cyberPalette.accent, glow: 'rgba(113,113,122,0.4)', label: 'AWAIT' },
-  error: { color: cyberPalette.red, glow: 'rgba(239,68,68,0.5)', label: 'ERR: CRITICAL' },
-  session_conflict: { color: cyberPalette.purple, glow: 'rgba(139,92,246,0.4)', label: 'CONFLICT' },
-  idle: { color: cyberPalette.gray, glow: 'transparent', label: 'STANDBY' },
-  archived: { color: cyberPalette.darkGray, glow: 'transparent', label: 'OFFLINE' }
+function getStatusTheme(palette: CyberPalette): Record<AgentStatus, CyberStyle> {
+  return {
+    creating: { color: palette.gray, glow: 'rgba(82,82,91,0.4)', label: 'INIT' },
+    active: { color: palette.green, glow: 'rgba(16,185,129,0.4)', label: 'ACTIVE' },
+    thinking: { color: palette.cyan, glow: 'rgba(14,165,233,0.4)', label: 'COMPUTING' },
+    tool_running: { color: palette.orange, glow: 'rgba(245,158,11,0.4)', label: 'EXEC' },
+    awaiting: { color: palette.accent, glow: 'rgba(113,113,122,0.4)', label: 'AWAIT' },
+    error: { color: palette.red, glow: 'rgba(239,68,68,0.5)', label: 'ERR: CRITICAL' },
+    session_conflict: { color: palette.purple, glow: 'rgba(139,92,246,0.4)', label: 'CONFLICT' },
+    idle: { color: palette.gray, glow: 'transparent', label: 'STANDBY' },
+    archived: { color: palette.darkGray, glow: 'transparent', label: 'OFFLINE' }
+  }
 }
 
 // Helper: Calculate positions around a center
@@ -64,15 +113,26 @@ function groupByTeam(agents: Agent[], teams: Team[]) {
 // ---------------------------------------------------------
 // AGENT NODE (TARGET HUD)
 // ---------------------------------------------------------
-function AgentNode({ agent, x, y, onClick }: { agent: Agent; x: number; y: number; onClick: (id: string) => void }) {
+interface AgentNodeProps {
+  agent: Agent
+  x: number
+  y: number
+  onClick: (id: string) => void
+  palette: CyberPalette
+  statusTheme: Record<AgentStatus, CyberStyle>
+  workspaceName: string
+}
+
+function AgentNode({ agent, x, y, onClick, palette, statusTheme, workspaceName }: AgentNodeProps) {
   const [hovered, setHovered] = useState(false)
   const theme = statusTheme[agent.status]
   const isActive = ['active', 'thinking', 'tool_running', 'awaiting'].includes(agent.status)
   const isDanger = agent.status === 'error'
-  
-  const coreRadius = 8
-  const workspaceName = agent.workspaceId ? agent.workspaceId.split('/').pop()?.split('\\').pop() : 'Default'
-  
+
+  const coreRadius = 12
+  const crosshairOffset = 24
+  const ringRadius = 18
+
   return (
     <g
       className="cursor-pointer"
@@ -80,31 +140,29 @@ function AgentNode({ agent, x, y, onClick }: { agent: Agent; x: number; y: numbe
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* ターゲットロックオンのクロスヘア (洗練版) */}
+      {/* ターゲットロックオンのクロスヘア */}
       <path
-        d={`M ${x - 18} ${y - 18} L ${x - 12} ${y - 18} M ${x - 18} ${y - 18} L ${x - 18} ${y - 12}
-            M ${x + 18} ${y - 18} L ${x + 12} ${y - 18} M ${x + 18} ${y - 18} L ${x + 18} ${y - 12}
-            M ${x - 18} ${y + 18} L ${x - 12} ${y + 18} M ${x - 18} ${y + 18} L ${x - 18} ${y + 12}
-            M ${x + 18} ${y + 18} L ${x + 12} ${y + 18} M ${x + 18} ${y + 18} L ${x + 18} ${y + 12}`}
-        stroke={hovered ? cyberPalette.textMain : theme.color}
-        strokeWidth={1}
+        d={`M ${x - crosshairOffset} ${y - crosshairOffset} L ${x - crosshairOffset + 8} ${y - crosshairOffset} M ${x - crosshairOffset} ${y - crosshairOffset} L ${x - crosshairOffset} ${y - crosshairOffset + 8}
+            M ${x + crosshairOffset} ${y - crosshairOffset} L ${x + crosshairOffset - 8} ${y - crosshairOffset} M ${x + crosshairOffset} ${y - crosshairOffset} L ${x + crosshairOffset} ${y - crosshairOffset + 8}
+            M ${x - crosshairOffset} ${y + crosshairOffset} L ${x - crosshairOffset + 8} ${y + crosshairOffset} M ${x - crosshairOffset} ${y + crosshairOffset} L ${x - crosshairOffset} ${y + crosshairOffset - 8}
+            M ${x + crosshairOffset} ${y + crosshairOffset} L ${x + crosshairOffset - 8} ${y + crosshairOffset} M ${x + crosshairOffset} ${y + crosshairOffset} L ${x + crosshairOffset} ${y + crosshairOffset - 8}`}
+        stroke={hovered ? palette.textMain : theme.color}
+        strokeWidth={1.2}
         fill="none"
-        opacity={hovered ? 0.8 : 0.3}
+        opacity={hovered ? 0.8 : 0.35}
       />
 
-      {/* 外側の回転リング (アクティブ時のみ、控えめに) */}
+      {/* 外側の回転リング (アクティブ時のみ) */}
       {isActive && (
-        <g>
-          <circle cx={x} cy={y} r={14} fill="none" stroke={theme.color} strokeWidth={0.5} strokeDasharray="2 4" opacity={0.5}>
-            <animateTransform attributeName="transform" type="rotate" from={`0 ${x} ${y}`} to={`360 ${x} ${y}`} dur="8s" repeatCount="indefinite" />
-          </circle>
-        </g>
+        <circle cx={x} cy={y} r={ringRadius} fill="none" stroke={theme.color} strokeWidth={0.6} strokeDasharray="3 5" opacity={0.5}>
+          <animateTransform attributeName="transform" type="rotate" from={`0 ${x} ${y}`} to={`360 ${x} ${y}`} dur="8s" repeatCount="indefinite" />
+        </circle>
       )}
 
       {/* エラー時の警告リップル */}
       {isDanger && (
-        <circle cx={x} cy={y} r={12} fill="none" stroke={theme.color} strokeWidth={1.5}>
-          <animate attributeName="r" values="8; 20" dur="1.5s" repeatCount="indefinite" />
+        <circle cx={x} cy={y} r={coreRadius} fill="none" stroke={theme.color} strokeWidth={1.5}>
+          <animate attributeName="r" values={`${coreRadius}; ${coreRadius + 14}`} dur="1.5s" repeatCount="indefinite" />
           <animate attributeName="opacity" values="1; 0" dur="1.5s" repeatCount="indefinite" />
         </circle>
       )}
@@ -114,71 +172,71 @@ function AgentNode({ agent, x, y, onClick }: { agent: Agent; x: number; y: numbe
         cx={x}
         cy={y}
         r={coreRadius}
-        fill={cyberPalette.bg}
+        fill={palette.bg}
         stroke={theme.color}
-        strokeWidth={1.5}
+        strokeWidth={1.8}
         filter={isDanger ? 'url(#cyber-glow)' : ''}
       />
       {/* 内部コア */}
-      <circle cx={x} cy={y} r={3} fill={theme.color} opacity={0.8} className={isActive ? 'animate-pulse' : ''} />
+      <circle cx={x} cy={y} r={4} fill={theme.color} opacity={0.8} className={isActive ? 'animate-pulse' : ''} />
 
       {/* テキスト - Initials */}
-      <text x={x} y={y - 20} textAnchor="middle" className="font-mono text-[9px] tracking-widest" fill={theme.color} opacity={0.8} style={{ userSelect: 'none' }}>
+      <text x={x} y={y - 28} textAnchor="middle" className="font-mono text-[10px] tracking-widest font-semibold" fill={theme.color} opacity={0.9} style={{ userSelect: 'none' }}>
         {getInitials(agent.name)}
       </text>
 
       {/* エージェント名 */}
-      <text x={x} y={y + 26} textAnchor="middle" className="font-mono text-[8.5px] uppercase tracking-wider font-medium" fill={cyberPalette.textMain} style={{ userSelect: 'none' }}>
+      <text x={x} y={y + 30} textAnchor="middle" className="font-mono text-[9.5px] uppercase tracking-wider font-medium" fill={palette.textMain} style={{ userSelect: 'none' }}>
         {agent.name.length > 12 ? agent.name.slice(0, 11) + '..' : agent.name}
       </text>
 
-      {/* ワークスペース名追加 */}
-      <text x={x} y={y + 36} textAnchor="middle" className="font-mono text-[7px] uppercase tracking-wider" fill={cyberPalette.textMuted} style={{ userSelect: 'none' }}>
-        WKSP: {workspaceName?.slice(0, 10)}
+      {/* ワークスペース名 */}
+      <text x={x} y={y + 42} textAnchor="middle" className="font-mono text-[7.5px] uppercase tracking-wider" fill={palette.textMuted} style={{ userSelect: 'none' }}>
+        WKSP: {workspaceName.slice(0, 12)}
       </text>
 
-      {/* ステータスドット/バッジ (シンプル版) */}
-      <rect x={x - 20} y={y + 40} width={40} height={10} fill={theme.color} opacity={0.1} />
-      <text x={x} y={y + 48} textAnchor="middle" className="font-mono text-[6.5px] font-bold uppercase tracking-widest" fill={theme.color} style={{ userSelect: 'none', opacity: 0.9 }}>
+      {/* ステータスバッジ */}
+      <rect x={x - 24} y={y + 47} width={48} height={12} fill={theme.color} opacity={0.12} rx={2} />
+      <text x={x} y={y + 56} textAnchor="middle" className="font-mono text-[7px] font-bold uppercase tracking-widest" fill={theme.color} style={{ userSelect: 'none', opacity: 0.9 }}>
         {theme.label}
       </text>
 
       {/* Hover Info Panel (Sleek Tooltip) */}
       {hovered && (
-        <foreignObject x={x + 25} y={y - 40} width={180} height={110} style={{ overflow: 'visible', zIndex: 100 }}>
+        <foreignObject x={x + 30} y={y - 45} width={200} height={120} style={{ overflow: 'visible', zIndex: 100 }}>
           <div
-            className="border shadow-xl relative"
+            className="border shadow-xl relative rounded"
             style={{
-              backgroundColor: 'rgba(9, 9, 11, 0.9)', // zinc-950 with opacity
-              borderColor: 'rgba(82, 82, 91, 0.5)', // zinc-600
+              backgroundColor: palette.panelBg,
+              borderColor: palette.panelBorder,
               backdropFilter: 'blur(8px)',
-              padding: '10px',
+              padding: '10px 12px',
               fontFamily: 'monospace',
               fontSize: '10px',
-              color: cyberPalette.textMain
+              color: palette.textMain
             }}
           >
             {/* Corner tech accent */}
             <div className="absolute top-0 left-0 w-2 h-2 border-t border-l" style={{ borderColor: theme.color }} />
-            
-            <div style={{ color: cyberPalette.textMain, fontWeight: 'bold', fontSize: '11px', borderBottom: `1px solid rgba(82,82,91,0.5)`, paddingBottom: '4px', marginBottom: '6px' }}>
+
+            <div style={{ color: palette.textMain, fontWeight: 'bold', fontSize: '11px', borderBottom: `1px solid ${palette.panelBorder}`, paddingBottom: '4px', marginBottom: '6px' }}>
               {agent.name}
             </div>
-            
+
             <div className="flex justify-between mb-1 opacity-90">
-              <span style={{ color: cyberPalette.textMuted }}>STATUS</span>
+              <span style={{ color: palette.textMuted }}>STATUS</span>
               <span style={{ color: theme.color }}>{agent.status}</span>
             </div>
-            {agent.workspaceId && (
+            {workspaceName !== 'Default' && (
               <div className="flex justify-between mb-1 opacity-90">
-                <span style={{ color: cyberPalette.textMuted }}>WORKSP</span>
+                <span style={{ color: palette.textMuted }}>WORKSP</span>
                 <span className="truncate ml-2 text-right">{workspaceName}</span>
               </div>
             )}
             {agent.currentTask && (
-              <div className="mt-2 text-[9px] leading-tight" style={{ color: cyberPalette.textMuted }}>
+              <div className="mt-2 text-[9px] leading-tight" style={{ color: palette.textMuted }}>
                 <div className="mb-[2px] opacity-70">CURRENT TASK:</div>
-                <div className="break-all">{agent.currentTask.slice(0, 50)}{agent.currentTask.length > 50 ? '...' : ''}</div>
+                <div className="break-all">{agent.currentTask.slice(0, 60)}{agent.currentTask.length > 60 ? '...' : ''}</div>
               </div>
             )}
           </div>
@@ -191,7 +249,7 @@ function AgentNode({ agent, x, y, onClick }: { agent: Agent; x: number; y: numbe
 // ---------------------------------------------------------
 // CONNECTION LINES (DATA STREAMS)
 // ---------------------------------------------------------
-function DataStreams({ agents, positions }: { agents: Agent[]; positions: Map<string, { x: number; y: number }> }) {
+function DataStreams({ agents, positions, palette, statusTheme }: { agents: Agent[]; positions: Map<string, { x: number; y: number }>; palette: CyberPalette; statusTheme: Record<AgentStatus, CyberStyle> }) {
   const lines: { from: { x: number; y: number }; to: { x: number; y: number }; theme: CyberStyle }[] = []
 
   for (const agent of agents) {
@@ -205,7 +263,7 @@ function DataStreams({ agents, positions }: { agents: Agent[]; positions: Map<st
   return (
     <g>
       {lines.map((line, i) => {
-        const isActive = line.theme.color === cyberPalette.cyan || line.theme.color === cyberPalette.green || line.theme.color === cyberPalette.orange
+        const isActive = line.theme.color === palette.cyan || line.theme.color === palette.green || line.theme.color === palette.orange
         return (
           <g key={i}>
             {/* Base line */}
@@ -237,16 +295,16 @@ function DataStreams({ agents, positions }: { agents: Agent[]; positions: Map<st
 // ---------------------------------------------------------
 // CENTRAL SYSTEM HUB (MAGI / STARK CORE)
 // ---------------------------------------------------------
-function SystemCore({ cx, cy, stats }: { cx: number; cy: number; stats: { total: number; active: number; error: number } }) {
+function SystemCore({ cx, cy, stats, palette }: { cx: number; cy: number; stats: { total: number; active: number; error: number }; palette: CyberPalette }) {
   const isDanger = stats.error > 0
-  const coreColor = isDanger ? cyberPalette.red : cyberPalette.accent
-  
+  const coreColor = isDanger ? palette.red : palette.accent
+
   return (
     <g>
       {/* Sleek Minimal Core Hexagon */}
       <polygon
         points={`${cx},${cy-45} ${cx+39},${cy-22.5} ${cx+39},${cy+22.5} ${cx},${cy+45} ${cx-39},${cy+22.5} ${cx-39},${cy-22.5}`}
-        fill={cyberPalette.bg}
+        fill={palette.bg}
         stroke={coreColor}
         strokeWidth={1}
         opacity={0.8}
@@ -258,17 +316,17 @@ function SystemCore({ cx, cy, stats }: { cx: number; cy: number; stats: { total:
       </circle>
 
       {/* Core Text Elements */}
-      <text x={cx} y={cy - 10} textAnchor="middle" className="font-mono font-medium tracking-[0.15em] text-[12px]" fill={cyberPalette.textMain} style={{ userSelect: 'none' }}>
+      <text x={cx} y={cy - 10} textAnchor="middle" className="font-mono font-medium tracking-[0.15em] text-[12px]" fill={palette.textMain} style={{ userSelect: 'none' }}>
         SYSTEM
       </text>
 
       {/* Health / Error display */}
-      <text x={cx} y={cy + 10} textAnchor="middle" className="font-mono text-[9px] uppercase font-bold tracking-widest" fill={isDanger ? cyberPalette.red : cyberPalette.green} style={{ userSelect: 'none' }}>
+      <text x={cx} y={cy + 10} textAnchor="middle" className="font-mono text-[9px] uppercase font-bold tracking-widest" fill={isDanger ? palette.red : palette.green} style={{ userSelect: 'none' }}>
         {isDanger ? 'ERR' : 'OK'}
       </text>
 
       {/* Online Stats */}
-      <text x={cx} y={cy + 25} textAnchor="middle" className="font-mono text-[7.5px]" fill={cyberPalette.textMuted} style={{ userSelect: 'none' }}>
+      <text x={cx} y={cy + 25} textAnchor="middle" className="font-mono text-[7.5px]" fill={palette.textMuted} style={{ userSelect: 'none' }}>
         NODES: {stats.active}/{stats.total}
       </text>
     </g>
@@ -286,7 +344,7 @@ type CyberSectorLabelProps = {
   cy: number;
   radius: number;
 }
-function CyberSectorLabel({ team, startAngle, endAngle, cx, cy, radius }: CyberSectorLabelProps) {
+function CyberSectorLabel({ team, startAngle, endAngle, cx, cy, radius, palette }: CyberSectorLabelProps & { palette: CyberPalette }) {
   const midAngle = (startAngle + endAngle) / 2
   const textRadius = radius + 40
   const x = cx + textRadius * Math.cos(midAngle)
@@ -298,7 +356,7 @@ function CyberSectorLabel({ team, startAngle, endAngle, cx, cy, radius }: CyberS
   const endX = cx + arcRadius * Math.cos(endAngle)
   const endY = cy + arcRadius * Math.sin(endAngle)
   const largeArc = endAngle - startAngle > Math.PI ? 1 : 0
-  
+
   const arcLen = endAngle - startAngle
   const isTiny = arcLen < 0.2
 
@@ -309,13 +367,13 @@ function CyberSectorLabel({ team, startAngle, endAngle, cx, cy, radius }: CyberS
       <path
         d={`M ${startX} ${startY} A ${arcRadius} ${arcRadius} 0 ${largeArc} 1 ${endX} ${endY}`}
         fill="none"
-        stroke={team?.color || cyberPalette.gray}
+        stroke={team?.color || palette.gray}
         strokeWidth={2}
         opacity={0.5}
         strokeDasharray="4 4"
       />
-      <rect x={x - 40} y={y - 8} width={80} height={16} fill={cyberPalette.bg} stroke={team?.color || cyberPalette.gray} strokeWidth={0.5} opacity={0.9} />
-      <text x={x} y={y + 3} textAnchor="middle" className="font-mono text-[8px] uppercase tracking-wider" fill={team?.color || cyberPalette.textMain} style={{ userSelect: 'none' }}>
+      <rect x={x - 40} y={y - 8} width={80} height={16} fill={palette.bg} stroke={team?.color || palette.gray} strokeWidth={0.5} opacity={0.9} />
+      <text x={x} y={y + 3} textAnchor="middle" className="font-mono text-[8px] uppercase tracking-wider" fill={team?.color || palette.textMain} style={{ userSelect: 'none' }}>
         SEC: {team?.name || 'UNASSIGNED'}
       </text>
     </g>
@@ -326,8 +384,25 @@ function CyberSectorLabel({ team, startAngle, endAngle, cx, cy, radius }: CyberS
 // MAIN EXPORT
 // ---------------------------------------------------------
 export function ActivityMap({ teams, onAgentClick }: ActivityMapProps) {
-  const { agents, usePtyMode } = useAppStore()
+  const { agents, usePtyMode, updateAgentInList } = useAppStore()
+  const palette = useCyberPalette()
+  const statusTheme = useMemo(() => getStatusTheme(palette), [palette])
   const activeAgents = agents.filter((a) => a.status !== 'archived')
+
+  // Workspace name resolution
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([])
+  useEffect(() => {
+    window.api.getWorkspaces().then(setWorkspaces).catch(() => {})
+  }, [])
+  const workspaceNameMap = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const ws of workspaces) map.set(ws.id, ws.name)
+    return map
+  }, [workspaces])
+  const resolveWorkspaceName = (agent: Agent): string => {
+    if (!agent.workspaceId) return 'Default'
+    return workspaceNameMap.get(agent.workspaceId) ?? agent.workspaceId.split('/').pop()?.split('\\').pop() ?? 'Default'
+  }
 
   // Pan, Zoom and Field Size States
   const [scale, setScale] = useState(1)
@@ -339,6 +414,26 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps) {
 
   // Cockpit view state
   const [cockpitAgentId, setCockpitAgentId] = useState<string | null>(null)
+
+  // Agent rename state
+  const [isRenaming, setIsRenaming] = useState(false)
+  const [renameValue, setRenameValue] = useState('')
+  const renameInputRef = useRef<HTMLInputElement>(null)
+
+  const startRename = (name: string) => {
+    setRenameValue(name)
+    setIsRenaming(true)
+    setTimeout(() => renameInputRef.current?.focus(), 50)
+  }
+
+  const commitRename = async (agentId: string) => {
+    const trimmed = renameValue.trim()
+    if (trimmed && trimmed !== agents.find(a => a.id === agentId)?.name) {
+      await window.api.updateAgent(agentId, { name: trimmed })
+      updateAgentInList(agentId, { name: trimmed })
+    }
+    setIsRenaming(false)
+  }
 
   const handleAgentNodeClick = (id: string) => {
     setCockpitAgentId(id)
@@ -418,8 +513,8 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps) {
 
   if (activeAgents.length === 0) {
     return (
-      <div className="w-full flex items-center justify-center aspect-video bg-[#09090b] border border-zinc-800 overflow-hidden font-mono relative rounded-md">
-         <div className="text-zinc-500 text-sm tracking-widest opacity-50 flex flex-col items-center">
+      <div className="w-full flex items-center justify-center aspect-video border overflow-hidden font-mono relative rounded-md" style={{ backgroundColor: palette.bg, borderColor: palette.cockpitBorder }}>
+         <div className="text-sm tracking-widest opacity-50 flex flex-col items-center" style={{ color: palette.textMuted }}>
             <span className="mb-2 uppercase">[ NO AGENTS ONLINE ]</span>
             <span className="animate-pulse">AWAITING SYSTEM INITIALIZATION...</span>
          </div>
@@ -431,21 +526,22 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps) {
 
   return (
     <div className="flex flex-col gap-1 w-full relative group">
-      <div 
+      <div
         className="w-full rounded-md border shadow-xl overflow-hidden select-none cursor-grab active:cursor-grabbing relative"
         style={{
-          backgroundColor: cyberPalette.bg,
-          borderColor: 'rgba(82, 82, 91, 0.4)', // zinc-600
+          backgroundColor: palette.bg,
+          borderColor: palette.panelBorder,
           height: `${mapHeight}px`
         }}
       >
         {/* Subtle grid gradient */}
-        <div 
-          className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        <div
+          className="absolute inset-0 pointer-events-none"
           style={{
-            backgroundImage: `linear-gradient(${cyberPalette.textMain} 1px, transparent 1px), linear-gradient(90deg, ${cyberPalette.textMain} 1px, transparent 1px)`,
+            backgroundImage: `linear-gradient(${palette.grid} 1px, transparent 1px), linear-gradient(90deg, ${palette.grid} 1px, transparent 1px)`,
             backgroundSize: '20px 20px',
-            backgroundPosition: `${pan.x}px ${pan.y}px` // Parallax grid
+            backgroundPosition: `${pan.x}px ${pan.y}px`,
+            opacity: 0.15
           }}
         />
 
@@ -473,42 +569,71 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps) {
           <g transform={`translate(${pan.x}, ${pan.y}) scale(${scale})`} style={{ transformOrigin: `${centerX}px ${centerY}px` }}>
             {/* Structural Elements */}
             {teamSectors.map((s, i) => (
-               <CyberSectorLabel key={i} {...s} cx={centerX} cy={centerY} radius={230} />
+               <CyberSectorLabel key={i} {...s} cx={centerX} cy={centerY} radius={230} palette={palette} />
             ))}
 
-            <DataStreams agents={activeAgents} positions={positions} />
-            <SystemCore cx={centerX} cy={centerY} stats={stats} />
+            <DataStreams agents={activeAgents} positions={positions} palette={palette} statusTheme={statusTheme} />
+            <SystemCore cx={centerX} cy={centerY} stats={stats} palette={palette} />
 
             {activeAgents.map((agent) => {
               const pos = positions.get(agent.id)
               if (!pos) return null
-              return <AgentNode key={agent.id} agent={agent} x={pos.x} y={pos.y} onClick={handleAgentNodeClick} />
+              return <AgentNode key={agent.id} agent={agent} x={pos.x} y={pos.y} onClick={handleAgentNodeClick} palette={palette} statusTheme={statusTheme} workspaceName={resolveWorkspaceName(agent)} />
             })}
           </g>
           
           {/* Static Corner Decorators */}
           <g opacity={0.3}>
-            <path d="M 20 50 L 20 20 L 50 20" fill="none" stroke={cyberPalette.accent} strokeWidth={1} />
-            <path d={`M ${svgWidth - 20} 50 L ${svgWidth - 20} 20 L ${svgWidth - 50} 20`} fill="none" stroke={cyberPalette.accent} strokeWidth={1} />
-            <path d={`M 20 ${svgHeight - 50} L 20 ${svgHeight - 20} L 50 ${svgHeight - 20}`} fill="none" stroke={cyberPalette.accent} strokeWidth={1} />
-            <path d={`M ${svgWidth - 20} ${svgHeight - 50} L ${svgWidth - 20} ${svgHeight - 20} L ${svgWidth - 50} ${svgHeight - 20}`} fill="none" stroke={cyberPalette.accent} strokeWidth={1} />
+            <path d="M 20 50 L 20 20 L 50 20" fill="none" stroke={palette.accent} strokeWidth={1} />
+            <path d={`M ${svgWidth - 20} 50 L ${svgWidth - 20} 20 L ${svgWidth - 50} 20`} fill="none" stroke={palette.accent} strokeWidth={1} />
+            <path d={`M 20 ${svgHeight - 50} L 20 ${svgHeight - 20} L 50 ${svgHeight - 20}`} fill="none" stroke={palette.accent} strokeWidth={1} />
+            <path d={`M ${svgWidth - 20} ${svgHeight - 50} L ${svgWidth - 20} ${svgHeight - 20} L ${svgWidth - 50} ${svgHeight - 20}`} fill="none" stroke={palette.accent} strokeWidth={1} />
           </g>
 
           {/* Footer info fixed to canvas bottom */}
-          <text x={centerX} y={svgHeight - 15} textAnchor="middle" className="font-mono text-[7px] uppercase tracking-[0.4em]" fill={cyberPalette.accent} opacity={0.5} style={{ userSelect: 'none' }}>
+          <text x={centerX} y={svgHeight - 15} textAnchor="middle" className="font-mono text-[7px] uppercase tracking-[0.4em]" fill={palette.accent} opacity={0.5} style={{ userSelect: 'none' }}>
             CLAUDE-AGENTDECK :: TACTICAL OVERVIEW
           </text>
         </svg>
 
         {/* Cockpit Overlay */}
         {cockpitAgent && (
-          <div className="absolute right-4 top-4 bottom-4 w-96 max-w-[50%] bg-[#09090b]/95 border border-zinc-700 rounded-lg shadow-2xl flex flex-col overflow-hidden backdrop-blur-md animate-in slide-in-from-right-8 duration-200">
+          <div
+            className="absolute right-4 top-4 bottom-4 w-96 max-w-[50%] border rounded-lg shadow-2xl flex flex-col overflow-hidden backdrop-blur-md animate-in slide-in-from-right-8 duration-200"
+            style={{ backgroundColor: `${palette.cockpitBg}f2`, borderColor: palette.cockpitBorder }}
+          >
             {/* Header */}
-            <div className="h-10 border-b border-zinc-800 flex items-center justify-between px-3 shrink-0 bg-zinc-900/50">
+            <div className="h-10 border-b flex items-center justify-between px-3 shrink-0" style={{ borderColor: palette.cockpitBorder, backgroundColor: palette.cockpitHeaderBg }}>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: statusTheme[cockpitAgent.status].color }} />
-                <span className="font-mono text-xs font-semibold">{cockpitAgent.name}</span>
-                <span className="text-[10px] text-zinc-500 font-mono ml-2 border border-zinc-800 px-1 rounded">COCKPIT</span>
+                {isRenaming ? (
+                  <form onSubmit={(e) => { e.preventDefault(); commitRename(cockpitAgent.id) }} className="flex items-center gap-1">
+                    <input
+                      ref={renameInputRef}
+                      value={renameValue}
+                      onChange={(e) => setRenameValue(e.target.value)}
+                      onBlur={() => commitRename(cockpitAgent.id)}
+                      className="font-mono text-xs font-semibold bg-transparent border-b outline-none w-28"
+                      style={{ borderColor: palette.accent, color: palette.textMain }}
+                    />
+                    <button type="submit" className="p-0.5 rounded hover:opacity-80" style={{ color: palette.green }}>
+                      <Check size={12} />
+                    </button>
+                  </form>
+                ) : (
+                  <>
+                    <span className="font-mono text-xs font-semibold" style={{ color: palette.textMain }}>{cockpitAgent.name}</span>
+                    <button
+                      onClick={() => startRename(cockpitAgent.name)}
+                      className="p-0.5 rounded hover:opacity-80 transition-opacity"
+                      style={{ color: palette.textMuted }}
+                      title="Rename"
+                    >
+                      <Pencil size={11} />
+                    </button>
+                  </>
+                )}
+                <span className="text-[10px] font-mono ml-1 border px-1 rounded" style={{ color: palette.textMuted, borderColor: palette.cockpitBorder }}>COCKPIT</span>
               </div>
               <div className="flex items-center gap-1">
                 <button
@@ -516,14 +641,16 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps) {
                     onAgentClick(cockpitAgent.id)
                     setCockpitAgentId(null)
                   }}
-                  className="p-1 hover:bg-zinc-800 rounded text-zinc-400 hover:text-white transition-colors"
+                  className="p-1 rounded transition-colors hover:opacity-80"
+                  style={{ color: palette.textMuted }}
                   title="Open Full View"
                 >
                   <Maximize2 size={13} />
                 </button>
-                <button 
-                  onClick={() => setCockpitAgentId(null)}
-                  className="p-1 hover:bg-red-900/50 rounded text-zinc-400 hover:text-red-400 transition-colors"
+                <button
+                  onClick={() => { setCockpitAgentId(null); setIsRenaming(false) }}
+                  className="p-1 rounded hover:bg-red-900/50 transition-colors"
+                  style={{ color: palette.textMuted }}
                 >
                   <X size={14} />
                 </button>
@@ -538,7 +665,7 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps) {
               )}
             </div>
             {/* Composer Area */}
-            <div className="shrink-0 border-t border-zinc-800 bg-zinc-950 p-2">
+            <div className="shrink-0 border-t p-2" style={{ borderColor: palette.cockpitBorder, backgroundColor: palette.bg }}>
               <Composer agentId={cockpitAgent.id} />
             </div>
           </div>
@@ -566,8 +693,8 @@ export function ActivityMap({ teams, onAgentClick }: ActivityMapProps) {
           window.addEventListener('pointerup', onUp)
         }}
       >
-        <div className="h-1.5 w-16 bg-zinc-700/50 hover:bg-zinc-500 rounded-full flex items-center justify-center">
-          <GripHorizontal size={10} className="text-zinc-400" />
+        <div className="h-1.5 w-16 rounded-full flex items-center justify-center" style={{ backgroundColor: `${palette.gray}80` }}>
+          <GripHorizontal size={10} style={{ color: palette.textMuted }} />
         </div>
       </div>
     </div>
