@@ -83,6 +83,7 @@
     "activityStream": "アクティビティストリーム",
     "scheduler": "スケジューラ",
     "chainGraph": "チェーングラフ",
+    "configMap": "設定マップ",
     "newTeam": "新規チーム",
     "teamName": "チーム名",
     "teamColor": "カラー",
@@ -236,6 +237,42 @@
     "title": "アクティビティマップ",
     "system": "システム",
     "online": "稼働中"
+  },
+  "configMap": {
+    "title": "設定マップ",
+    "noWorkspace": "ワークスペース未選択",
+    "selectWorkspace": "ワークスペースを選択して設定構造を表示",
+    "conflictWarning": "コンフリクト検出",
+    "conflictsFound": "件のコンフリクトを検出",
+    "preview": "ファイルプレビュー",
+    "noContent": "内容なし",
+    "level": "レベル",
+    "lines": "行数",
+    "size": "サイズ",
+    "nodes": "ノード",
+    "edges": "エッジ",
+    "levelGlobal": "グローバル",
+    "levelProject": "プロジェクト",
+    "levelAgent": "エージェント",
+    "conflicts": "コンフリクト",
+    "category": {
+      "label": "カテゴリ",
+      "rules": "ルール",
+      "skills": "スキル",
+      "commands": "コマンド",
+      "templates": "テンプレート",
+      "mcpServers": "MCPサーバー",
+      "hooks": "フック",
+      "memory": "メモリ",
+      "agents": "エージェント",
+      "settings": "設定"
+    },
+    "relationship": {
+      "inherits": "継承",
+      "overrides": "上書き",
+      "references": "参照",
+      "configures": "構成"
+    }
   },
   "agentTeams": {
     "external": "外部CLI",

@@ -38,11 +38,11 @@ interface AppState {
   showRightPane: boolean
   showBroadcast: boolean
   showDashboard: boolean
-  dashboardActiveView: 'activityMap' | 'chainGraph' | 'scheduler'
+  dashboardActiveView: 'activityMap' | 'chainGraph' | 'scheduler' | 'configMap'
   toggleRightPane: () => void
   toggleBroadcast: () => void
   toggleDashboard: () => void
-  setDashboardActiveView: (view: 'orgChart' | 'skillMap' | 'kanban' | 'activityMap' | 'activityStream') => void
+  setDashboardActiveView: (view: 'orgChart' | 'skillMap' | 'kanban' | 'activityMap' | 'activityStream' | 'configMap') => void
 
   // Layout
   paneLayout: 1 | 2 | 4

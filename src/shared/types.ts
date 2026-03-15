@@ -438,6 +438,9 @@ export interface ElectronAPI {
   // Agent Teams (Claude Code CLI integration)
   getAgentTeamsData: () => Promise<AgentTeamsData>
   onAgentTeamsUpdate: (callback: (data: AgentTeamsData) => void) => () => void
+
+  // Config Map
+  getConfigMapData: (projectPath: string) => Promise<ConfigMapData>
 }
 
 export type LogLevel = 'info' | 'warn' | 'error' | 'fatal'
@@ -482,4 +485,43 @@ export interface DiagnosticStats {
   oldestLog: string | null
   newestLog: string | null
   logSizeBytes: number
+}
+
+// Config Map types
+export type ConfigNodeCategory = 'rules' | 'skills' | 'commands' | 'templates' | 'mcpServers' | 'hooks' | 'memory' | 'agents' | 'settings'
+export type ConfigNodeLevel = 'global' | 'project' | 'agent'
+export type ConfigEdgeRelationship = 'inherits' | 'overrides' | 'references' | 'configures'
+export type ConfigConflictType = 'duplicate_mcp' | 'override_rule'
+
+export interface ConfigNode {
+  id: string
+  label: string
+  category: ConfigNodeCategory
+  level: ConfigNodeLevel
+  filePath: string
+  lineCount: number
+  sizeBytes: number
+  preview: string
+  metadata: Record<string, unknown>
+}
+
+export interface ConfigEdge {
+  from: string
+  to: string
+  relationship: ConfigEdgeRelationship
+}
+
+export interface ConfigConflict {
+  nodeIds: string[]
+  type: ConfigConflictType
+  description: string
+}
+
+export interface ConfigMapData {
+  projectPath: string
+  projectName: string
+  nodes: ConfigNode[]
+  edges: ConfigEdge[]
+  conflicts: ConfigConflict[]
+  scannedAt: string
 }

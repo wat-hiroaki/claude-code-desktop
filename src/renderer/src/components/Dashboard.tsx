@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useAppStore } from '../stores/useAppStore'
 import {
   Users, AlertCircle, XCircle, CheckCircle2, FileText,
-  GitBranch, Plus, X, HardDrive, Brain, Radar, Calendar
+  GitBranch, Plus, X, HardDrive, Brain, Radar, Calendar, Map
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { DailyReport } from './DailyReport'
@@ -11,9 +11,10 @@ import { ActivityMap } from './ActivityMap'
 import { ChainGraph } from './ChainGraph'
 import { ActivityStream } from './ActivityStream'
 import { ScheduledTasksPanel } from './ScheduledTasksPanel'
-import type { Team } from '@shared/types'
+import { ConfigMap } from './ConfigMap'
+import type { Team, Workspace } from '@shared/types'
 
-type DashboardView = 'activityMap' | 'chainGraph' | 'scheduler'
+type DashboardView = 'activityMap' | 'chainGraph' | 'scheduler' | 'configMap'
 
 interface DashboardProps {
   onOpenScanner?: () => void
@@ -25,6 +26,7 @@ export function Dashboard({ onOpenScanner, fullHeight }: DashboardProps): JSX.El
   const { teamStats, setSelectedAgent, dashboardActiveView, setDashboardActiveView } = useAppStore()
   const [showDailyReport, setShowDailyReport] = useState(false)
   const [teams, setTeams] = useState<Team[]>([])
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([])
   const [showNewTeam, setShowNewTeam] = useState(false)
   const [newTeamName, setNewTeamName] = useState('')
   const [newTeamColor, setNewTeamColor] = useState('#6366f1')
@@ -34,9 +36,15 @@ export function Dashboard({ onOpenScanner, fullHeight }: DashboardProps): JSX.El
     setTeams(result)
   }, [])
 
+  const loadWorkspaces = useCallback(async () => {
+    const result = await window.api.getWorkspaces()
+    setWorkspaces(result)
+  }, [])
+
   useEffect(() => {
     loadTeams()
-  }, [loadTeams])
+    loadWorkspaces()
+  }, [loadTeams, loadWorkspaces])
 
   const handleAgentClick = useCallback((id: string): void => {
     setSelectedAgent(id)
@@ -58,7 +66,8 @@ export function Dashboard({ onOpenScanner, fullHeight }: DashboardProps): JSX.El
   const views: { key: DashboardView; icon: typeof Radar; label: string }[] = [
     { key: 'activityMap', icon: Radar, label: t('teamMgmt.activityMap') },
     { key: 'chainGraph', icon: GitBranch, label: t('teamMgmt.chainGraph', 'Chain Graph') },
-    { key: 'scheduler', icon: Calendar, label: t('teamMgmt.scheduler', 'Scheduler') }
+    { key: 'scheduler', icon: Calendar, label: t('teamMgmt.scheduler', 'Scheduler') },
+    { key: 'configMap', icon: Map, label: t('teamMgmt.configMap', 'Config Map') }
   ]
 
   const teamColors = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#06b6d4']
@@ -223,6 +232,7 @@ export function Dashboard({ onOpenScanner, fullHeight }: DashboardProps): JSX.El
         )}
         {dashboardActiveView === 'chainGraph' && <ChainGraph onAgentClick={handleAgentClick} />}
         {dashboardActiveView === 'scheduler' && <ScheduledTasksPanel />}
+        {dashboardActiveView === 'configMap' && <ConfigMap workspaces={workspaces} />}
       </div>
 
       {showDailyReport && (

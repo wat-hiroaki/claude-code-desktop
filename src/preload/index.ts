@@ -197,6 +197,9 @@ const api: ElectronAPI = {
 
   installUpdate: () => ipcRenderer.invoke('update:install'),
 
+  // Config Map
+  getConfigMapData: (projectPath: string) => ipcRenderer.invoke('config:getConfigMap', projectPath),
+
   // Agent Teams (Claude Code CLI integration)
   getAgentTeamsData: () => ipcRenderer.invoke('agentTeams:get'),
   onAgentTeamsUpdate: (callback: (data: import('@shared/types').AgentTeamsData) => void) => {

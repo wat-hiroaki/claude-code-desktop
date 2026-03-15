@@ -83,6 +83,7 @@
     "activityStream": "Activity Stream",
     "scheduler": "Scheduler",
     "chainGraph": "Chain Graph",
+    "configMap": "Config Map",
     "newTeam": "New Team",
     "teamName": "Team Name",
     "teamColor": "Color",
@@ -236,6 +237,42 @@
     "title": "ACTIVITY MAP",
     "system": "SYSTEM",
     "online": "ONLINE"
+  },
+  "configMap": {
+    "title": "CONFIG MAP",
+    "noWorkspace": "NO WORKSPACE SELECTED",
+    "selectWorkspace": "Select a workspace to view its config structure",
+    "conflictWarning": "Conflict detected",
+    "conflictsFound": "conflict(s) detected",
+    "preview": "File Preview",
+    "noContent": "No content available",
+    "level": "Level",
+    "lines": "Lines",
+    "size": "Size",
+    "nodes": "nodes",
+    "edges": "edges",
+    "levelGlobal": "Global",
+    "levelProject": "Project",
+    "levelAgent": "Agent",
+    "conflicts": "Conflicts",
+    "category": {
+      "label": "Category",
+      "rules": "Rules",
+      "skills": "Skills",
+      "commands": "Commands",
+      "templates": "Templates",
+      "mcpServers": "MCP Servers",
+      "hooks": "Hooks",
+      "memory": "Memory",
+      "agents": "Agents",
+      "settings": "Settings"
+    },
+    "relationship": {
+      "inherits": "Inherits",
+      "overrides": "Overrides",
+      "references": "References",
+      "configures": "Configures"
+    }
   },
   "agentTeams": {
     "external": "External CLI",
